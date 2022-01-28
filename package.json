@@ -1,0 +1,43 @@
+{
+  "name": "aibuddy",
+  "version": "0.1.0",
+  "description": "A general purpose discord chat bot that uses GPT-3 to generate chat responses",
+  "main": "src/index.js",
+  "dependencies": {
+    "combined-stream": "^1.0.8",
+    "asynckit": "^0.4.0",
+    "axios": "^0.21.4",
+    "follow-redirects": "^1.14.7",
+    "delayed-stream": "^1.0.0",
+    "discord-api-types": "^0.26.1",
+    "discord.js": "^13.6.0",
+    "dotenv": "^14.3.2",
+    "form-data": "^4.0.0",
+    "mime-db": "^1.51.0",
+    "mime-types": "^2.1.34",
+    "node-fetch": "^2.6.7",
+    "tr46": "^0.0.3",
+    "tslib": "^2.3.1",
+    "openai-api": "^1.2.6",
+    "ts-mixer": "^6.0.0",
+    "webidl-conversions": "^3.0.1",
+    "whatwg-url": "^5.0.0",
+    "ws": "^8.4.2",
+    "zod": "^3.11.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rikimbili/AiBud.git"
+  },
+  "keywords": [],
+  "author": "Raciel (https://github.com/Rikimbili)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Rikimbili/AiBud/issues"
+  },
+  "homepage": "https://github.com/Rikimbili/AiBud"
+}
