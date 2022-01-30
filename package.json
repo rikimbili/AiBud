@@ -1,8 +1,8 @@
 {
-  "name": "aibuddy",
-  "version": "0.1.0",
+  "name": "aibud",
+  "version": "0.2.0",
   "description": "A general purpose discord chat bot that uses GPT-3 to generate chat responses",
-  "main": "src/index.js",
+  "main": "src/aibud.js",
   "dependencies": {
     "combined-stream": "^1.0.8",
     "asynckit": "^0.4.0",
@@ -27,7 +27,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "node src/index.js"
+    "test": "node src/aibud.js"
   },
   "repository": {
     "type": "git",
