@@ -72,7 +72,7 @@ function resetPromptStep(message) {
 }
 
 /**
- * @description Resets the prompt to default for the user
+ * @description Generates and completes the selected prompt using OpenAI
  *
  * @param {Message} message Message object from Discord
  */
@@ -89,7 +89,7 @@ async function generatePromptStep(message) {
     engine: "davinci",
     prompt: getPrompt(selectedPrompt),
     maxTokens: 128,
-    temperature: 0.7,
+    temperature: 0.8,
     presencePenalty: 1.0,
     frequencyPenalty: 2.0,
     stop: ["\n", "\n\n"],
@@ -141,6 +141,10 @@ client.on("messageCreate", (message) => {
   // Set entered prompt case
   else if (message.content.startsWith("!ai.set")) {
     setEnteredPromptStep(message);
+  }
+  // Invalid prompt case
+  else if (message.content.startsWith("!ai.")) {
+    message.reply("`Invalid prompt`");
   }
   // Prompt command case
   else if (message.content.startsWith("!ai")) {
