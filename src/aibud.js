@@ -126,6 +126,7 @@ function setEnteredPromptStep(message) {
   message.reply(`\`Behavior prompt ${enteredPrompt} not found\``);
 }
 
+// Main program loop that gets triggered everytime someone sends a message in any channel
 client.on("messageCreate", (message) => {
   if (message.author.bot) return; // Return if the message was sent by a bot including AiBud itself
 
