@@ -17,7 +17,6 @@ const client = new Client({
 }); // Initialize the discord client with the right permissions
 let prompts = promptsPreset; // Initialize the prompts array
 let selectedPrompt = "normal"; // Prompt to use
-let lastBotMessages = new Array(process.env.MAX_BOT_PROMPT_HISTORY); // Stores the last bot messages
 let defaultNameNeedsChange = true; // Keeps track of whether the default name needs to be changed
 
 /**
@@ -38,12 +37,12 @@ function getPrompt(selectedPrompt) {
 /**
  * @description Changes the default name throughout the prompts to the user's name
  *
- * @param {string} username Name of the user to change the prompt to
+ * @param {string} name Name of the user to change the prompt to
  */
-function changeNameOccurrences(username) {
+function changeNameOccurrences(name) {
   if (defaultNameNeedsChange) {
     for (const [promptKey, promptValue] of Object.entries(prompts)) {
-      prompts[promptKey] = promptValue.replaceAll("You:", `${username}:`);
+      prompts[promptKey] = promptValue.replaceAll("You:", `${name}:`);
     }
     defaultNameNeedsChange = false;
   }
@@ -69,7 +68,7 @@ function concatPrompt(newPrompt) {
  */
 function resetPromptStep(message) {
   prompts = promptsPreset;
-  message.channel.send("🪄`Memory Reset`🪄");
+  message.channel.send("🪄`Prompt Reset`🪄");
 }
 
 /**
@@ -89,25 +88,13 @@ async function generatePromptStep(message) {
   const gptResponse = await openai.complete({
     engine: "davinci",
     prompt: getPrompt(selectedPrompt),
-    maxTokens: 150,
-    temperature: 0.3,
-    topP: 0.3,
-    presencePenalty: 0,
-    frequencyPenalty: 0.5,
-    bestOf: 1,
-    n: 1,
-    stream: false,
+    maxTokens: 128,
+    temperature: 0.7,
+    presencePenalty: 1.0,
+    frequencyPenalty: 2.0,
     stop: ["\n", "\n\n"],
   });
   const response = gptResponse.data.choices[0]?.text.substring(6).trim();
-
-  // Reset prompt if messages keep repeating
-  for (const message of lastBotMessages) {
-    if (message === response) {
-      resetPromptStep(message);
-      return;
-    }
-  }
 
   message.reply(`${response}`);
   concatPrompt(`${gptResponse.data.choices[0].text}\n`);
@@ -128,7 +115,7 @@ function setEnteredPromptStep(message) {
   for (const [promptKey, promptValue] of Object.entries(prompts)) {
     if (promptKey === enteredPrompt) {
       if (selectedPrompt == enteredPrompt)
-        message.reply("`Behavior prompt already set`");
+        message.reply(`\`Behavior prompt already set to ${selectedPrompt}\``);
       else {
         selectedPrompt = enteredPrompt;
         message.reply(`\`Behavior prompt set to ${selectedPrompt}\``);
@@ -144,7 +131,7 @@ client.on("messageCreate", (message) => {
 
   if (message.content.startsWith("!ai")) {
     message.channel.sendTyping(); // Show the bot as typing in the channel
-    changeNameOccurrences(message.author.username); // Change the default prompt name occurrences
+    changeNameOccurrences(message.member.displayName); // Change the default prompt name occurrences
   }
 
   // Reset prompt history case
