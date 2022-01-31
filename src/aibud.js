@@ -1,8 +1,8 @@
 /*
   TODO
-  - Keep a conversation history prompt in general and for each user
-    - Handle massive prompt sizes as a result of big conversation histories
+  - Handle massive prompt sizes as a result of big conversation histories
   - Add Search, Image Classification/Creation and question/answer functionality
+  - Discord status
 */
 const OpenAI = require("openai-api");
 const { Client, Intents} = require("discord.js");
@@ -14,7 +14,7 @@ const client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
 }); // Initialize the discord client with the right permissions
 
-// Server Context
+// Allows for Server Context
 // This array will hold different prompt objects for each server AiBud is in
 const prompts = [];
 
@@ -81,7 +81,7 @@ function getPromptObjectIndex(serverID) {
     // Create a new prompt object for the server
     prompts.push({
       serverId: serverID, // Server ID of the server the message was sent in
-      prompt: promptsPreset,
+      prompt: Object.create(promptsPreset), // Create a new object from the prompts preset
       selectedPrompt: "normal", // Default prompt
       defaultNameNeedsChange: true, // If the default name in the prompts needs to be changed
     });
@@ -97,8 +97,9 @@ function getPromptObjectIndex(serverID) {
  */
 function resetPromptStep(message) {
   // Replace the existing prompt with the preset prompt for the current discord server
-  prompts[getPromptObjectIndex(message.guildId)].prompt = promptsPreset;
+  prompts[getPromptObjectIndex(message.guildId)].prompt = Object.create(promptsPreset);
 
+  console.log(`\nReset prompt "${prompts[getPromptObjectIndex(message.guildId)].selectedPrompt}" for ${message.guildId}\n`);
   message.channel.send("🪄`Prompt Reset`🪄");
 }
 
@@ -141,9 +142,16 @@ async function generatePromptStep(message) {
     stop: ["\n", "\n\n"],
   }).then((gptResponse) => {
     const response  = gptResponse.data.choices[0]?.text.trim();
-    message.reply(`${response}`);
-    concatPrompt(promptIdx, `${gptResponse.data.choices[0].text}\n`);
-    console.log(userPrompt + `AiBud: ${response}`);
+    // Check if response is empty and
+    if(response.length === 0) {
+      console.log("Empty response received from OpenAI complete engine");
+      message.reply("`Empty response received\nTry again`");
+    }
+    else {
+      concatPrompt(promptIdx, `${gptResponse.data.choices[0].text}\n`);
+      console.log(userPrompt + `AiBud: ${response}`);
+      message.reply(`${response}`);
+    }
   }).catch((err) => {
     console.log(err);
     message.reply("`Error occurred while generating prompt\n`");
