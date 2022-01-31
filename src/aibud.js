@@ -134,16 +134,19 @@ async function generatePromptStep(message) {
   openai.complete({
     engine: "davinci",
     prompt: getPrompt(promptIdx),
-    maxTokens: 100,
+    maxTokens: 80,
     temperature: 0.6,
-    presencePenalty: 0.5,
-    frequencyPenalty: 1.5,
+    presencePenalty: 1.0,
+    frequencyPenalty: 2.0,
     stop: ["\n", "\n\n"],
   }).then((gptResponse) => {
     const response  = gptResponse.data.choices[0]?.text.trim();
     message.reply(`${response}`);
     concatPrompt(promptIdx, `${gptResponse.data.choices[0].text}\n`);
     console.log(userPrompt + `AiBud: ${response}`);
+  }).catch((err) => {
+    console.log(err);
+    message.reply("`Error occurred while generating prompt\n`");
   });
 }
 
