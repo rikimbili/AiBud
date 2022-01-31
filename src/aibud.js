@@ -2,7 +2,6 @@
   TODO
   - Keep a conversation history prompt in general and for each user
     - Handle massive prompt sizes as a result of big conversation histories
-    - Handle resetting
   - Add Search, Image Classification/Creation and question/answer functionality
 */
 
@@ -77,9 +76,20 @@ function resetPromptStep(message) {
  * @param {Message} message Message object from Discord
  */
 async function generatePromptStep(message) {
-  const userPrompt = `${message.author.username}: ${message.content
+  // Show the bot as typing in the channel while the prompt is being generated
+  message.channel.sendTyping();
+  // Change the default prompt name occurrences
+  changeNameOccurrences(message.member.displayName);
+
+  const userPrompt = `${message.author.username}: AiBud, ${message.content
     .replace("!ai", "")
     .trim()}\n`;
+
+  // If the prompt is empty bail out
+  if (message.content.replace("!ai", "").trim().length === 0) {
+    message.reply("`Empty prompt received\nType a valid prompt`");
+    return;
+  }
 
   // Add the user's message to the selected prompt
   concatPrompt(userPrompt);
@@ -89,8 +99,8 @@ async function generatePromptStep(message) {
     engine: "davinci",
     prompt: getPrompt(selectedPrompt),
     maxTokens: 128,
-    temperature: 0.8,
-    presencePenalty: 1.0,
+    temperature: 0.7,
+    presencePenalty: 0.5,
     frequencyPenalty: 2.0,
     stop: ["\n", "\n\n"],
   });
@@ -109,7 +119,9 @@ function setEnteredPromptStep(message) {
   const enteredPrompt = message.content.replace("!ai.set", "").trim();
 
   if (enteredPrompt.length === 0)
-    return message.reply("`Empty prompt entered\nEnter a valid prompt`");
+    return message.reply(
+      "`Empty prompt name received\nType a valid prompt name`"
+    );
 
   // Check if the entered prompt exists and set it to the selected prompt if it does
   for (const [promptKey, promptValue] of Object.entries(prompts)) {
@@ -129,11 +141,6 @@ function setEnteredPromptStep(message) {
 // Main program loop that gets triggered everytime someone sends a message in any channel
 client.on("messageCreate", (message) => {
   if (message.author.bot) return; // Return if the message was sent by a bot including AiBud itself
-
-  if (message.content.startsWith("!ai")) {
-    message.channel.sendTyping(); // Show the bot as typing in the channel
-    changeNameOccurrences(message.member.displayName); // Change the default prompt name occurrences
-  }
 
   // Reset prompt history case
   if (message.content.startsWith("!ai.reset")) {
