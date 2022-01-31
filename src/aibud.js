@@ -135,7 +135,7 @@ async function generatePromptStep(message) {
   openai.complete({
     engine: "davinci",
     prompt: getPrompt(promptIdx),
-    maxTokens: 80,
+    maxTokens: 64,
     temperature: 0.6,
     presencePenalty: 1.0,
     frequencyPenalty: 2.0,
