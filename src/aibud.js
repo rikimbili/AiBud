@@ -73,15 +73,16 @@ function getPromptObjectIndex(serverID) {
   // Get index if prompt object already exists for the server
   const promptIdx = prompts.findIndex((prompt) => prompt.serverId === serverID)
 
+  // If Prompt object already exists for the server, return the index
   if (promptIdx !== -1) {
-    // Prompt object already exists for the server, return the index
     return promptIdx;
   }
+  // Create a new prompt object for the server
   else {
-    // Create a new prompt object for the server
+
     prompts.push({
       serverId: serverID, // Server ID of the server the message was sent in
-      prompt: Object.create(promptsPreset), // Create a new object from the prompts preset
+      prompt: JSON.parse(JSON.stringify(promptsPreset)), // Create a new object from the prompts preset
       selectedPrompt: "normal", // Default prompt
       defaultNameNeedsChange: true, // If the default name in the prompts needs to be changed
     });
@@ -97,7 +98,7 @@ function getPromptObjectIndex(serverID) {
  */
 function resetPromptStep(message) {
   // Replace the existing prompt with the preset prompt for the current discord server
-  prompts[getPromptObjectIndex(message.guildId)].prompt = Object.create(promptsPreset);
+  prompts[getPromptObjectIndex(message.guildId)].prompt = JSON.parse(JSON.stringify(promptsPreset));
 
   console.log(`\nReset prompt "${prompts[getPromptObjectIndex(message.guildId)].selectedPrompt}" for ${message.guildId}\n`);
   message.channel.send("🪄`Prompt Reset`🪄");
@@ -156,6 +157,7 @@ async function generatePromptStep(message) {
     console.log(err);
     message.reply("`Error occurred while generating prompt\n`");
   });
+  console.log(prompts[promptIdx].prompt[prompts[promptIdx].selectedPrompt]);
 }
 
 /**
