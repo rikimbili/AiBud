@@ -6,7 +6,7 @@
 */
 
 const OpenAI = require("openai-api");
-const { Client, Intents } = require("discord.js");
+const { Client, Intents, SnowflakeUtil} = require("discord.js");
 const promptsPreset = require("./prompts.json"); // Import prompts to feed OpenAI with some context
 require("dotenv").config();
 
@@ -14,20 +14,24 @@ const openai = new OpenAI(process.env.OPENAI_API_KEY); // Initialize OpenAI
 const client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
 }); // Initialize the discord client with the right permissions
-let prompts = promptsPreset; // Initialize the prompts array
-let selectedPrompt = "normal"; // Prompt to use
-let defaultNameNeedsChange = true; // Keeps track of whether the default name needs to be changed
+
+// Server Context
+// This array will hold different prompts for each server AiBud is in
+const prompts = [];
 
 /**
  * @description Gets the specified prompt
  *
+ * @param {Snowflake} message Message object from Discord
  * @param {string} selectedPrompt Prompt to get
  *
  * @returns {string} Prompt
  */
-function getPrompt(selectedPrompt) {
-  for (const [promptKey, promptValue] of Object.entries(prompts)) {
-    if (promptKey === selectedPrompt) {
+function getPrompt(message, selectedPrompt) {
+  const prompt_idx = getPromptObjectIndex(message);
+
+  for (const [promptKey, promptValue] of Object.entries(prompts[prompt_idx].prompt)) {
+    if (promptKey === prompts[prompt_idx].selectedPrompt) {
       return promptValue;
     }
   }
@@ -36,37 +40,73 @@ function getPrompt(selectedPrompt) {
 /**
  * @description Changes the default name throughout the prompts to the user's name
  *
+ * @param {Snowflake} serverID ID of the server AiBud is in
  * @param {string} name Name of the user to change the prompt to
  */
-function changeNameOccurrences(name) {
-  if (defaultNameNeedsChange) {
-    for (const [promptKey, promptValue] of Object.entries(prompts)) {
-      prompts[promptKey] = promptValue.replaceAll("You:", `${name}:`);
+function changeNameOccurrences(serverID, name) {
+  // Get
+  const prompt_idx = getPromptObjectIndex(serverID);
+
+  if (prompts[prompt_idx].defaultNameNeedsChange) {
+    for (const [promptKey, promptValue] of Object.entries(prompts[prompt_idx].prompt)) {
+      prompts[prompt_idx].prompt[promptKey] = promptValue.replaceAll("You:", `${name}:`);
     }
-    defaultNameNeedsChange = false;
+    prompts[prompt_idx].defaultNameNeedsChange = false;
   }
 }
 
 /**
  * @description Concatenates the specified prompt
  *
+ * @param {Message} message Message object from Discord
  * @param {string} newPrompt New prompt to concatenate
  */
-function concatPrompt(newPrompt) {
+function concatPrompt(message, newPrompt) {
+
   for (const [promptKey, promptValue] of Object.entries(prompts)) {
     if (promptKey === selectedPrompt) {
-      prompts[selectedPrompt] = promptValue + newPrompt;
+      prompts[getPromptObjectIndex(message)].prompt = promptValue + newPrompt;
     }
   }
 }
 
 /**
- * @description Resets the prompt to default for the user
+ * @description Get the prompt object index if it exists or create a prompt object for the discord server
  *
- * @param {Message} message Message object from Discord
+ * @param {Snowflake} serverID Server ID of the server AiBud is in
+ *
+ * @returns {number} Return 0 if the prompt object is created or the prompt object index if it was already in the array
+ */
+function getPromptObjectIndex(serverID) {
+  // Prompt object already exists for the server
+  const prompt_idx = prompts.findIndex((prompt) => prompt.serverId === serverID)
+
+  if (prompt_idx !== -1) {
+    // Prompt object already exists for the server, return the index
+    return prompt_idx;
+  }
+  else {
+    // Create a new prompt object for the server
+    prompts.push({
+      serverId: serverID,
+      prompt: promptsPreset,
+      selectedPrompt: "normal",
+      defaultNameNeedsChange: true,
+    });
+    return 0;
+  }
+}
+
+/**
+ * @description Resets the prompt to the default preset for the server and makes a new object in the prompts array
+ * if the server is not found in the array
+ *
+ * @param {Snowflake} serverID Server id to reset the prompt for
  */
 function resetPromptStep(message) {
-  prompts = promptsPreset;
+  // Replace the existing prompt with the preset prompt for the current discord server
+  prompts[getPromptObjectIndex(message)].prompt = promptsPreset;
+
   message.channel.send("🪄`Prompt Reset`🪄");
 }
 
@@ -77,9 +117,9 @@ function resetPromptStep(message) {
  */
 async function generatePromptStep(message) {
   // Show the bot as typing in the channel while the prompt is being generated
-  message.channel.sendTyping();
+  await message.channel.sendTyping();
   // Change the default prompt name occurrences
-  changeNameOccurrences(message.member.displayName);
+  changeNameOccurrences(message, message.member.displayName);
 
   const userPrompt = `${message.author.username}: AiBud, ${message.content
     .replace("!ai", "")
@@ -92,14 +132,14 @@ async function generatePromptStep(message) {
   }
 
   // Add the user's message to the selected prompt
-  concatPrompt(userPrompt);
+  concatPrompt(userPrompt + `\nAiBud: `);
 
   // Send the prompt to OpenAI and wait for the magic to happen 🪄
   const gptResponse = await openai.complete({
     engine: "davinci",
     prompt: getPrompt(selectedPrompt),
     maxTokens: 128,
-    temperature: 0.7,
+    temperature: 0.6,
     presencePenalty: 0.5,
     frequencyPenalty: 2.0,
     stop: ["\n", "\n\n"],
@@ -107,7 +147,7 @@ async function generatePromptStep(message) {
   const response = gptResponse.data.choices[0]?.text.substring(6).trim();
 
   message.reply(`${response}`);
-  concatPrompt(`${gptResponse.data.choices[0].text}\n`);
+  concatPrompt(message, `${gptResponse.data.choices[0].text}\n`);
 }
 
 /**
