@@ -158,14 +158,17 @@ function setEnteredPromptStep(message) {
       "`Empty prompt name received\nType a valid prompt name`"
     );
 
+  // Get the prompt object index for the current discord server
+  const promptIdx = getPromptObjectIndex(message.guild.id);
+
   // Check if the entered prompt exists and set it to the selected prompt if it does
   for (const [promptKey, promptValue] of Object.entries(prompts)) {
     if (promptKey === enteredPrompt) {
-      if (selectedPrompt === enteredPrompt)
-        message.reply(`\`Behavior prompt already set to ${selectedPrompt}\``);
+      if (prompts[promptIdx].selectedPrompt === enteredPrompt)
+        message.reply(`\`Behavior prompt already set to ${enteredPrompt}\``);
       else {
-        selectedPrompt = enteredPrompt;
-        message.reply(`\`Behavior prompt set to ${selectedPrompt}\``);
+        prompts[promptIdx].selectedPrompt = enteredPrompt;
+        message.reply(`\`Behavior prompt set to ${enteredPrompt}\``);
       }
       return;
     }
@@ -187,7 +190,7 @@ client.on("messageCreate", (message) => {
   }
   // Invalid prompt case
   else if (message.content.startsWith("!ai.")) {
-    message.reply("`Invalid prompt`");
+    message.reply(`Invalid setting ${message.content.trim()} received\nType a valid setting`);
   }
   // Prompt command case
   else if (message.content.startsWith("!ai")) {
