@@ -180,17 +180,20 @@ function setEnteredPromptStep(message) {
 client.on("messageCreate", (message) => {
   if (message.author.bot) return; // Return if the message was sent by a bot including AiBud itself
 
-  // Reset prompt history case
-  if (message.content.startsWith("!ai.reset")) {
-    resetPromptStep(message);
-  }
-  // Set entered prompt case
-  else if (message.content.startsWith("!ai.set")) {
-    setEnteredPromptStep(message);
-  }
-  // Invalid prompt case
-  else if (message.content.startsWith("!ai.")) {
-    message.reply(`Invalid setting ${message.content.trim()} received\nType a valid setting`);
+
+  if (message.content.startsWith("!ai.")){
+    // Reset prompt history case
+    if (message.content.endsWith("reset")) {
+      resetPromptStep(message);
+    }
+    // Set entered prompt case
+    else if (message.content.endsWith("set")) {
+      setEnteredPromptStep(message);
+    }
+    // Invalid prompt case
+    else {
+      message.reply(`Invalid setting ${message.content.trim()} received\nType a valid setting`);
+    }
   }
   // Prompt command case
   else if (message.content.startsWith("!ai")) {
