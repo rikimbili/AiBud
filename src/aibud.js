@@ -97,7 +97,7 @@ function getPromptObjectIndex(serverID) {
  */
 function resetPromptStep(message) {
   // Replace the existing prompt with the preset prompt for the current discord server
-  prompts[getPromptObjectIndex(message.guild.id)].prompt = promptsPreset;
+  prompts[getPromptObjectIndex(message.guildId)].prompt = promptsPreset;
 
   message.channel.send("🪄`Prompt Reset`🪄");
 }
@@ -111,11 +111,13 @@ async function generatePromptStep(message) {
   // Show the bot as typing in the channel while the prompt is being generated
   await message.channel.sendTyping();
   // Get the prompt object index for the current discord server
-  const promptIdx = getPromptObjectIndex(message.guild.id);
-  // Change the default prompt name occurrences
-  changeNameOccurrences(promptIdx, message.member.displayName);
+  const promptIdx = getPromptObjectIndex(message.guildId);
+  // Change the default prompt name occurrences to either the server nickname or username
+  if (prompts[promptIdx].defaultNameNeedsChange) {
+    changeNameOccurrences(promptIdx, message.member.nickname || message.author.username);
+  }
 
-  const userPrompt = `${message.author.username}: ${message.content
+  const userPrompt = `${message.member.nickname || message.author.username}: ${message.content
     .replace("!ai", "")
     .trim()}\n`;
 
@@ -159,7 +161,7 @@ function setEnteredPromptStep(message) {
     );
 
   // Get the prompt object index for the current discord server
-  const promptIdx = getPromptObjectIndex(message.guild.id);
+  const promptIdx = getPromptObjectIndex(message.guildId);
 
   // Check if the entered prompt exists and set it to the selected prompt if it does
   for (const [promptKey, promptValue] of Object.entries(prompts)) {
@@ -183,16 +185,16 @@ client.on("messageCreate", (message) => {
 
   if (message.content.startsWith("!ai.")){
     // Reset prompt history case
-    if (message.content.endsWith("reset")) {
+    if (message.content.startsWith("!ai.reset")) {
       resetPromptStep(message);
     }
     // Set entered prompt case
-    else if (message.content.endsWith("set")) {
+    else if (message.content.startsWith("!ai.set")) {
       setEnteredPromptStep(message);
     }
     // Invalid prompt case
     else {
-      message.reply(`Invalid setting ${message.content.trim()} received\nType a valid setting`);
+      message.reply(`\`Invalid option ${message.content.trim()} received\nType a valid option\``);
     }
   }
   // Prompt command case
