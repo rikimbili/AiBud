@@ -134,7 +134,7 @@ async function generatePromptStep(message) {
   openai.complete({
     engine: "davinci",
     prompt: getPrompt(promptIdx),
-    maxTokens: 12,
+    maxTokens: 100,
     temperature: 0.6,
     presencePenalty: 0.5,
     frequencyPenalty: 1.5,
@@ -164,7 +164,7 @@ function setEnteredPromptStep(message) {
   const promptIdx = getPromptObjectIndex(message.guildId);
 
   // Check if the entered prompt exists and set it to the selected prompt if it does
-  for (const [promptKey, promptValue] of Object.entries(prompts)) {
+  for (const [promptKey, promptValue] of Object.entries(prompts[promptIdx].prompt)) {
     if (promptKey === enteredPrompt) {
       if (prompts[promptIdx].selectedPrompt === enteredPrompt)
         message.reply(`\`Behavior prompt already set to ${enteredPrompt}\``);
