@@ -4,12 +4,11 @@
   - Add Search, Image Classification/Creation and question/answer functionality
   - Discord status
 */
-const OpenAI = require("openai-api");
-const { Client, Intents} = require("discord.js");
-const promptsPreset = require("./prompts.json"); // Import prompts to feed OpenAI with some context
-require("dotenv").config();
+import 'dotenv/config'
+import { Client, Intents } from 'discord.js';
+import {GPTJ, GPT3} from './aimodels.js' // Import neural network models
+import promptsPreset from './prompts.json' // Import prompts
 
-const openai = new OpenAI(process.env.OPENAI_API_KEY); // Initialize OpenAI
 const client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
 }); // Initialize the discord client with the right permissions
@@ -133,15 +132,7 @@ async function generatePromptStep(message) {
   concatPrompt(promptIdx,userPrompt + `AiBud: `);
 
   // Send the prompt to OpenAI and wait for the magic to happen 🪄
-  openai.complete({
-    engine: "davinci",
-    prompt: getPrompt(promptIdx),
-    maxTokens: 64,
-    temperature: 0.6,
-    presencePenalty: 1.0,
-    frequencyPenalty: 2.0,
-    stop: ["\n", "\n\n"],
-  }).then((gptResponse) => {
+  GPT3(getPrompt(promptIdx)).then((gptResponse) => {
     const response  = gptResponse.data.choices[0]?.text.trim();
     // Check if response is empty and
     if(response.length === 0) {
@@ -157,7 +148,6 @@ async function generatePromptStep(message) {
     console.log(err);
     message.reply("`Error occurred while generating prompt\n`");
   });
-  console.log(prompts[promptIdx].prompt[prompts[promptIdx].selectedPrompt]);
 }
 
 /**
