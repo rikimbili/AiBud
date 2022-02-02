@@ -82,7 +82,9 @@ function getPromptObjectIndex(serverID) {
     prompts.push({
       serverId: serverID, // Server ID of the server the message was sent in
       prompt: JSON.parse(JSON.stringify(promptsPreset)), // Create a new object from the prompts preset
-      selectedPrompt: "normal", // Default prompt
+      selectedPrompt: "normal", // Prompt to use
+      selectedModel: "GPT3", // AI model to use
+      selectedEngine: "curie", // Model specific engine to use
       defaultNameNeedsChange: true, // If the default name in the prompts needs to be changed
     });
     return 0;
@@ -108,9 +110,9 @@ function resetPromptStep(message) {
  *
  * @param {Message} message Message object from Discord
  */
-async function generatePromptStep(message) {
+function generatePromptStep(message) {
   // Show the bot as typing in the channel while the prompt is being generated
-  await message.channel.sendTyping();
+  message.channel.sendTyping();
   // Get the prompt object index for the current discord server
   const promptIdx = getPromptObjectIndex(message.guildId);
   // Change the default prompt name occurrences to either the server nickname or username
@@ -124,7 +126,7 @@ async function generatePromptStep(message) {
 
   // Case where the prompt is empty
   if (message.content.replace("!ai", "").trim().length === 0) {
-    message.reply("`Empty prompt received\nType a valid prompt`");
+    message.reply("`Empty prompt entered\nType a valid prompt`");
     return;
   }
 
@@ -132,22 +134,23 @@ async function generatePromptStep(message) {
   concatPrompt(promptIdx,userPrompt + `AiBud: `);
 
   // Send the prompt to OpenAI and wait for the magic to happen 🪄
-  GPT3(getPrompt(promptIdx)).then((gptResponse) => {
-    const response  = gptResponse.data.choices[0]?.text.trim();
-    // Check if response is empty and
-    if(response.length === 0) {
-      console.log("Empty response received from OpenAI complete engine");
-      message.reply("`Empty response received\nTry again`");
-    }
-    else {
-      concatPrompt(promptIdx, `${gptResponse.data.choices[0].text}\n`);
-      console.log(userPrompt + `AiBud: ${response}`);
-      message.reply(`${response}`);
-    }
-  }).catch((err) => {
-    console.log(err);
-    message.reply("`Error occurred while generating prompt\n`");
-  });
+  GPT3(getPrompt(promptIdx), 64, 0.7, 1.0, 1.5, prompts[promptIdx].selectedEngine)
+      .then((gptResponse) => {
+        const response  = gptResponse.data.choices[0]?.text.trim();
+        // Check if response is empty and
+        if(response.length === 0) {
+          console.log("Empty response received from OpenAI complete engine");
+          message.reply("`Empty response received from model\nTry again`");
+        }
+        else {
+          concatPrompt(promptIdx, `${gptResponse.data.choices[0].text}\n`);
+          console.log(userPrompt + `AiBud: ${response}`);
+          message.reply(`${response}`);
+        }
+      }).catch((err) => {
+        console.log(err);
+        message.reply("`Error occurred while generating prompt\n`");
+      });
 }
 
 /**
@@ -160,7 +163,7 @@ function setEnteredPromptStep(message) {
 
   if (enteredPrompt.length === 0)
     return message.reply(
-      "`Empty prompt name received\nType a valid prompt name`"
+      "`Empty or Invalid prompt name entered\nType a valid prompt name`"
     );
 
   // Get the prompt object index for the current discord server
@@ -181,7 +184,55 @@ function setEnteredPromptStep(message) {
   message.reply(`\`Behavior prompt ${enteredPrompt} not found\``);
 }
 
-// Main program loop that gets triggered everytime someone sends a message in any channel
+/**
+ * @description Sets the model to be used for the prompt
+ *
+ * @param {Message} message Message object from Discord
+ */
+function setEnteredModelStep(message) {
+  const enteredModel = message.content.replace("!ai.setmodel", "").trim();
+
+  if (enteredModel.length === 0)
+    return message.reply(
+      "`Empty or Invalid model name entered\nType a valid model engine name`"
+    );
+
+  // Get the prompt object index for the current discord server
+  const promptIdx = getPromptObjectIndex(message.guildId);
+
+  if (prompts[promptIdx].selectedModel === enteredModel)
+    message.reply(`\`Model already set to ${enteredModel}\``);
+  else {
+    prompts[promptIdx].selectedModel = enteredModel;
+    message.reply(`\`Model set to ${enteredModel}\``);
+  }
+}
+
+/**
+ * @description Sets the model to be used for the prompt
+ *
+ * @param {Message} message Message object from Discord
+ */
+function setEnteredEngineStep(message) {
+  const enteredEngine = message.content.replace("!ai.setengine", "").trim();
+
+  if (enteredEngine.length === 0)
+    return message.reply(
+      "`Empty or Invalid engine name entered\nType a valid engine name`"
+    );
+
+  // Get the prompt object index for the current discord server
+  const promptIdx = getPromptObjectIndex(message.guildId);
+
+  if (prompts[promptIdx].selectedEngine === enteredEngine)
+    message.reply(`\`Engine already set to ${enteredEngine}\``);
+  else {
+    prompts[promptIdx].selectedEngine = enteredEngine;
+    message.reply(`\`Engine set to ${enteredEngine}\``);
+  }
+}
+
+// Main program loop that gets triggered everytime someone sends a message in any channel of the server the bot has access to
 client.on("messageCreate", (message) => {
   if (message.author.bot) return; // Return if the message was sent by a bot including AiBud itself
 
@@ -192,17 +243,44 @@ client.on("messageCreate", (message) => {
       resetPromptStep(message);
     }
     // Set entered prompt case
-    else if (message.content.startsWith("!ai.set")) {
+    else if (message.content.startsWith("!ai.set ")) {
       setEnteredPromptStep(message);
     }
-    // Invalid prompt case
+    // Set model engine
+    else if (message.content.startsWith("!ai.setmodel")) {
+      setEnteredModelStep(message);
+    }
+    else if (message.content.startsWith("!ai.setengine")) {
+      setEnteredEngineStep(message);
+    }
+    // Help Case
+    else if (message.content.startsWith("!ai.help")) {
+      if ("!ai.help" === message.content.trim())
+        message.reply(
+            "`!ai.reset` - Resets the prompt history and returns it to default\n" +
+            "`!ai.set [prompt name]` - Sets the prompt to the entered prompt.\n" +
+            "`!ai [prompt]` - Generates a prompt using the entered prompt" +
+            "`!ai.help` - Shows this help message\n" +
+            "`!ai.help set` - Shows all the prompt names you can choose from\n"
+        );
+      else if ("!ai.help set" === message.content.trim())
+        message.reply(
+            `\`Prompts you can choose from:\n${Object.keys(promptsPreset).toString().replaceAll(",", ", ")}\``
+        );
+      else
+        message.reply(`\`Invalid help command ${message.content.replace("!ai.help", "").trim()} entered \``);
+    }
     else {
-      message.reply(`\`Invalid option ${message.content.trim()} received\nType a valid option\``);
+      message.reply(`\`Invalid command ${message.content.trim()} entered\nType !ai.help for help\``);
     }
   }
   // Prompt command case
-  else if (message.content.startsWith("!ai")) {
+  else if (message.content.startsWith("!ai ")) {
     generatePromptStep(message);
+  }
+  // Invalid command case
+  else {
+    message.reply(`\`Invalid command ${message.content.trim()} entered\nType !ai.help for help\``);
   }
 });
 

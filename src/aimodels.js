@@ -23,7 +23,7 @@ export async function GPTJ() {
 }
 
 export async function GPT3(prompt, maxTokens=64,
-                        temperature=0.8, presenceP=1.0, frequencyP=1.5, engine = "curie") {
+                        temperature=0.7, presenceP=1.0, frequencyP=1.5, engine = "davinci") {
     return await openai.complete({
         engine: engine,
         prompt: prompt,
