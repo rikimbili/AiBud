@@ -7,7 +7,7 @@
 import 'dotenv/config'
 import { Client, Intents } from 'discord.js';
 import {GPTJ, GPT3} from './aimodels.js' // Import neural network models
-import promptsPreset from './prompts.json' // Import prompts
+import promptsPreset from './prompts.json' assert {type: "json"} // Import prompts
 
 const client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
@@ -78,13 +78,12 @@ function getPromptObjectIndex(serverID) {
   }
   // Create a new prompt object for the server
   else {
-
     prompts.push({
       serverId: serverID, // Server ID of the server the message was sent in
       prompt: JSON.parse(JSON.stringify(promptsPreset)), // Create a new object from the prompts preset
       selectedPrompt: "normal", // Prompt to use
       selectedModel: "GPT3", // AI model to use
-      selectedEngine: "curie", // Model specific engine to use
+      selectedEngine: "davinci", // Model specific engine to use
       defaultNameNeedsChange: true, // If the default name in the prompts needs to be changed
     });
     return 0;
@@ -131,10 +130,10 @@ function generatePromptStep(message) {
   }
 
   // Add the user's message to the selected prompt
-  concatPrompt(promptIdx,userPrompt + `AiBud: `);
+  concatPrompt(promptIdx,userPrompt + "AiBud: ");
 
   // Send the prompt to OpenAI and wait for the magic to happen 🪄
-  GPT3(getPrompt(promptIdx), 64, 0.7, 1.0, 1.5, prompts[promptIdx].selectedEngine)
+  GPT3(getPrompt(promptIdx), 64, 0.8, 1.0, 1.5, prompts[promptIdx].selectedEngine)
       .then((gptResponse) => {
         const response  = gptResponse.data.choices[0]?.text.trim();
         // Check if response is empty and
@@ -205,6 +204,7 @@ function setEnteredModelStep(message) {
   else {
     prompts[promptIdx].selectedModel = enteredModel;
     message.reply(`\`Model set to ${enteredModel}\``);
+    resetPromptStep(message);
   }
 }
 
@@ -259,7 +259,9 @@ client.on("messageCreate", (message) => {
         message.reply(
             "`!ai.reset` - Resets the prompt history and returns it to default\n" +
             "`!ai.set [prompt name]` - Sets the prompt to the entered prompt.\n" +
-            "`!ai [prompt]` - Generates a prompt using the entered prompt" +
+            "`!ai [prompt]` - Generates a prompt using the entered prompt\n" +
+            "`!ai.setmodel [model name]` - Sets the model to be used for processing the prompt\n" +
+            "`!ai.setengine [engine name]` - Sets the engine to be used for processing the prompt\n" +
             "`!ai.help` - Shows this help message\n" +
             "`!ai.help set` - Shows all the prompt names you can choose from\n"
         );
@@ -279,7 +281,7 @@ client.on("messageCreate", (message) => {
     generatePromptStep(message);
   }
   // Invalid command case
-  else {
+  else if (message.content.startsWith("!ai")) {
     message.reply(`\`Invalid command ${message.content.trim()} entered\nType !ai.help for help\``);
   }
 });
