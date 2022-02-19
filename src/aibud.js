@@ -4,41 +4,59 @@
   - Add Search, Image Classification/Creation and question/answer functionality
   - Discord status
 */
-import 'dotenv/config'
-import { Client, Intents } from 'discord.js';
-import * as steps from './steps.js';
+import "dotenv/config";
+import { Client, Intents, Collection } from "discord.js";
+import promptsPreset from "../prompts.json" assert { type: "json" };
+import * as steps from "./steps.js";
 
 const client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
-}); // Initialize the discord client with the right permissions
+}); // Initialize the discord bot client with the right permissions
 
+client.commands = new Collection();
 
-// Main program loop that gets triggered everytime someone sends a message in any channel of the server the bot has access to
 client.on("messageCreate", (message) => {
   if (message.author.bot) return; // Return if the message was sent by a bot including AiBud itself
 
+  AiBud(message).catch((err) => {
+    console.error(err);
+    message.channel.send("`An error occurred`");
+  }); // Run the AiBud function
+});
 
-  if (message.content.startsWith("!ai.")){
+/**
+ * @description Main function that gets called whenever a message is sent in any channel of the server the bot has access to
+ *
+ * @param {Message<boolean>} message Discord message object that contains the message sent by the user
+ *
+ * @returns {Promise<void>}
+ */
+async function AiBud(message) {
+  if (message.content.startsWith("!ai.")) {
     // Reset prompt history case
     if (message.content.startsWith("!ai.reset")) {
-      steps.resetPromptStep(message);
+      await message.reply(steps.resetPromptStep(message.guildId));
     }
     // Set entered prompt case
     else if (message.content.startsWith("!ai.set ")) {
-      steps.setEnteredPromptStep(message);
+      await message.reply(
+        steps.setEnteredPromptStep(message.content, message.guildId)
+      );
     }
     // Set model engine
     else if (message.content.startsWith("!ai.setmodel")) {
-      steps.setEnteredModelStep(message);
-    }
-    else if (message.content.startsWith("!ai.setengine")) {
-      steps.setEnteredEngineStep(message);
+      await message.reply(
+        steps.setEnteredModelStep(message.content, message.guildId)
+      );
+    } else if (message.content.startsWith("!ai.setengine")) {
+      steps.setEnteredEngineStep(message.content, message.guildId);
     }
     // Help Case
     else if (message.content.startsWith("!ai.help")) {
-      if ("!ai.help" === message.content.trim())
-        message.reply(
-            "`!ai.reset` - Resets the prompt history and returns it to default\n" +
+      // Generic help message
+      if ("!ai.help" === message.content.trim()) {
+        await message.reply(
+          "`!ai.reset` - Resets the prompt history and returns it to default\n" +
             "`!ai.set [prompt name]` - Sets the prompt to the entered prompt.\n" +
             "`!ai [prompt]` - Generates a prompt using the entered prompt\n" +
             "`!ai.setmodel [model name]` - Sets the model to be used for processing the prompt\n" +
@@ -46,25 +64,50 @@ client.on("messageCreate", (message) => {
             "`!ai.help` - Shows this help message\n" +
             "`!ai.help set` - Shows all the prompt names you can choose from\n"
         );
-      else if ("!ai.help set" === message.content.trim())
-        message.reply(
-            `\`Prompts you can choose from:\n${Object.keys(promptsPreset).toString().replaceAll(",", ", ")}\``
+      }
+      // Help message for the set command
+      else if ("!ai.help set" === message.content.trim()) {
+        await message.reply(
+          `\`Prompts you can choose from:\n${Object.keys(promptsPreset)
+            .toString()
+            .replaceAll(",", ", ")}\``
         );
-      else
-        message.reply(`\`Invalid help command ${message.content.replace("!ai.help", "").trim()} entered \``);
-    }
-    else {
-      message.reply(`\`Invalid command ${message.content.trim()} entered\nType !ai.help for help\``);
+      }
+      // The help command is invalid
+      else {
+        await message.reply(
+          `\`Invalid help command ${message.content
+            .replace("!ai.help", "")
+            .trim()} entered \``
+        );
+      }
+    } else {
+      await message.reply(
+        `\`Invalid command ${message.content.trim()} entered\nType !ai.help for help\``
+      );
     }
   }
   // Prompt command case
   else if (message.content.startsWith("!ai ")) {
-    generatePromptStep(message);
+    // Show the bot as typing in the channel while the prompt is being generated
+    await message.channel.sendTyping();
+
+    // Send the generated prompt as a reply message
+    await message.reply(
+      await steps.generatePromptStep(
+        message.content,
+        message.guildId,
+        message.member.nickname,
+        message.author.username
+      )
+    );
   }
   // Invalid command case
   else if (message.content.startsWith("!ai")) {
-    message.reply(`\`Invalid command ${message.content.trim()} entered\nType !ai.help for help\``);
+    await message.reply(
+      `\`Invalid command ${message.content.trim()} entered\nType !ai.help for help\``
+    );
   }
-});
+}
 
 client.login(process.env.DISCORD_BOT_TOKEN);
