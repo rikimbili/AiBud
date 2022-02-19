@@ -1,11 +1,12 @@
 import { GPT3 } from "./aimodels.js"; // Import models
-import promptsPreset from "../../prompts.json" assert { type: "json" }; // Import prompts
 import {
   changeNameOccurrences,
   concatPrompt,
   getPrompt,
   getPromptObjectIndex,
 } from "./utils.js"; // Import utilities
+
+import promptsPreset from "../../prompts.json" assert { type: "json" }; // Import prompts
 
 // prompts array singleton holding the prompt objects for all the servers AiBud is in
 // This array will hold different prompt objects for each server AiBud is in

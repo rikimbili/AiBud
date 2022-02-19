@@ -1,21 +1,13 @@
 import { REST } from "@discordjs/rest";
-import { ai } from "./commands/index.js"; // Import commands
 
-const commands = [ai];
+import { Routes } from "discord-api-types/v9";
+import ai from "./commands/command-declarations.js"; // Import commands
 
 const rest = new REST({ version: "9" }).setToken(process.env.DISCORD_BOT_TOKEN);
 
-(async () => {
-  try {
-    console.log("Started refreshing application (/) commands.");
-
-    await rest.put(
-      Routes.applicationCommands(process.env.DISCORD_BOT_CLIENT_ID),
-      { body: commands }
-    );
-
-    console.log("Successfully reloaded application (/) commands.");
-  } catch (error) {
-    console.error(error);
-  }
-})();
+await rest
+  .put(Routes.applicationCommands(process.env.DISCORD_BOT_CLIENT_ID), {
+    body: [ai.toJSON()], // Takes the command JSON object as an array
+  })
+  .then(() => console.log("Successfully registered application commands."))
+  .catch(console.error);

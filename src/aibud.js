@@ -6,9 +6,10 @@
 */
 import "dotenv/config";
 import { Client, Intents, Collection } from "discord.js";
-import * as steps from "./steps/steps.js";
-import * as deploy from "./deploy-commands.js";
-import promptsPreset from "../prompts.json" assert { type: "json" };
+import * as steps from "./steps/steps.js"; // Import all steps
+import "./deploy-commands.js"; // Initializes the commands
+
+import promptsPreset from "../prompts.json" assert { type: "json" }; // Import prompts
 
 const client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
@@ -22,17 +23,25 @@ client.once("ready", () => {
 });
 
 // On each message, check if it is a command and run the main function if it is
-client.on("interactionCreate", (interaction) => {
+client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return; // Return if the message is not a bot command
 
-  AiBud(interaction).catch((err) => {
-    console.error(err);
-    interaction.channel.send("`An error occurred`");
-  }); // Run the AiBud function
+  const { commandName, options } = interaction;
+
+  if (commandName === "ai") {
+    if (options.getSubcommand() === "chat") {
+      await interaction.reply("it works!");
+    }
+  }
+
+  // AiBud(interaction).catch((err) => {
+  //   console.error(err);
+  //   interaction.channel.send("`An error occurred`");
+  // }); // Run the AiBud function
 });
 
 /**
- * @description Main function that gets called whenever a message is sent in any channel of the server the bot has access to
+ * @description Main function that gets called whenever an interaction command is triggered
  *
  * @param {Message<boolean>} message Discord message object that contains the message sent by the user
  *

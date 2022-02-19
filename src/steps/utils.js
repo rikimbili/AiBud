@@ -1,5 +1,6 @@
-import promptsPreset from "../../prompts.json";
 import { prompts } from "./steps.js";
+
+import promptsPreset from "../../prompts.json" assert { type: "json" };
 
 /**
  * @description Gets the specified prompt
