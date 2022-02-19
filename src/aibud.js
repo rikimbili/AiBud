@@ -6,8 +6,9 @@
 */
 import "dotenv/config";
 import { Client, Intents, Collection } from "discord.js";
+import * as steps from "./steps/steps.js";
+import * as deploy from "./deploy-commands.js";
 import promptsPreset from "../prompts.json" assert { type: "json" };
-import * as steps from "./steps.js";
 
 const client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
@@ -15,12 +16,18 @@ const client = new Client({
 
 client.commands = new Collection();
 
-client.on("messageCreate", (message) => {
-  if (message.author.bot) return; // Return if the message was sent by a bot including AiBud itself
+// Display only once upon startup
+client.once("ready", () => {
+  console.log("AiBud is Online!");
+});
 
-  AiBud(message).catch((err) => {
+// On each message, check if it is a command and run the main function if it is
+client.on("interactionCreate", (interaction) => {
+  if (!interaction.isCommand()) return; // Return if the message is not a bot command
+
+  AiBud(interaction).catch((err) => {
     console.error(err);
-    message.channel.send("`An error occurred`");
+    interaction.channel.send("`An error occurred`");
   }); // Run the AiBud function
 });
 
