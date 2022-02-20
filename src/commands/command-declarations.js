@@ -8,8 +8,8 @@ const ai = new SlashCommandBuilder()
   .setDescription("Interact with AiBud")
   .addSubcommand((subcommand) =>
     subcommand
-      .setName("chat")
-      .setDescription("Send a message for AiBud to reply to")
+      .setName("help")
+      .setDescription("Display commands and usage")
       .addStringOption((option) =>
         option
           .setName("message")

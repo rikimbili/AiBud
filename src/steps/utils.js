@@ -3,6 +3,21 @@ import { prompts } from "./steps.js";
 import promptsPreset from "../../prompts.json" assert { type: "json" };
 
 /**
+ * @description Creates a message object for embedding in a Discord message.
+ *
+ * @param {string} message The message to be displayed.
+ * @param {string} type The type of message. Options are: "success", "info", "warning", "error".
+ *
+ * @returns {Object} The message object.
+ */
+export function createMessageObject(message, type = "info") {
+  return {
+    message: message,
+    type: type,
+  };
+}
+
+/**
  * @description Gets the specified prompt
  *
  * @param {number} promptIdx Prompt index for the discord server the message was sent in

@@ -1,7 +1,12 @@
+/*
+  Steps used in the main aibud.js file for text completion and command execution.
+*/
+
 import { GPT3 } from "./aimodels.js"; // Import models
 import {
   changeNameOccurrences,
   concatPrompt,
+  createMessageObject,
   getPrompt,
   getPromptObjectIndex,
 } from "./utils.js"; // Import utilities
@@ -18,7 +23,7 @@ export const prompts = [];
  *
  * @param {string} serverID server ID of the server the message was sent in
  *
- * @returns {string} Return a message for the bot to send
+ * @returns {Object} Message object for the bot to send
  */
 export function resetPromptStep(serverID) {
   // Replace the existing prompt with the preset prompt for the current discord server
@@ -31,7 +36,7 @@ export function resetPromptStep(serverID) {
       prompts[getPromptObjectIndex(serverID)].selectedPrompt
     }" for ${serverID}\n`
   );
-  return "🪄`Prompt Reset`🪄";
+  return createMessageObject("🪄`Prompt Reset`🪄", "success");
 }
 
 /**
@@ -42,7 +47,7 @@ export function resetPromptStep(serverID) {
  * @param {string} userNickname Server nickname of the user
  * @param {string} username Username of the user
  *
- * @returns {Promise<string>} Return a prompt for the bot to send
+ * @returns {Promise<Object>} Message object for the bot to send
  */
 export async function generatePromptStep(
   message,
@@ -60,7 +65,10 @@ export async function generatePromptStep(
   let userPrompt = message.replace("!ai", "").replace(/\s+/g, " ").trim(); // Remove extra spaces and trim the message
   // Case where the prompt is empty
   if (userPrompt.length === 0) {
-    return "Empty prompt entered\nType a valid prompt";
+    return createMessageObject(
+      "Empty prompt entered\nType a valid prompt",
+      "warning"
+    );
   }
   userPrompt = `${userNickname || username}: ${userPrompt}`;
 
@@ -81,32 +89,39 @@ export async function generatePromptStep(
       // Check if response is empty and
       if (response.length === 0) {
         console.log("Empty response received from OpenAI complete engine");
-        return "Empty response received from model :(";
+        return createMessageObject(
+          "Empty response received from OpenAI complete engine",
+          "warning"
+        );
       } else {
         concatPrompt(promptIdx, `${gptResponse.data.choices[0].text}\n`);
         console.log(userPrompt + `AiBud: ${response}`);
-        return `${response}`;
+        return createMessageObject(`${response}`, "success");
       }
     })
     .catch((err) => {
       console.log(err);
-      return "Error occurred while generating prompt\n";
+      return createMessageObject(
+        "Error occurred while generating the prompt\n",
+        "error"
+      );
     });
 }
 
 /**
  * @description Sets the prompt to the entered prompt
  *
- * @param {string} message Message sent by the user
+ * @param {string} enteredPrompt Prompt to change the selected prompt to
  * @param {string} serverID Server ID of the server the message was sent in
  *
- * @returns {string} Return a message for the bot to send
+ * @returns {Object} Message object for the bot to send
  */
-export function setEnteredPromptStep(message, serverID) {
-  const enteredPrompt = message.replace("!ai.set", "").trim();
-
+export function setEnteredPromptStep(enteredPrompt, serverID) {
   if (enteredPrompt.length === 0)
-    return "Empty or Invalid prompt name entered\nType a valid prompt name";
+    return createMessageObject(
+      "Empty or Invalid prompt name entered\nType a valid prompt name",
+      "warning"
+    );
 
   // Get the prompt object index for the current discord server
   const promptIdx = getPromptObjectIndex(serverID);
@@ -115,35 +130,48 @@ export function setEnteredPromptStep(message, serverID) {
   for (const [promptKey] of Object.entries(prompts[promptIdx].prompt)) {
     if (promptKey === enteredPrompt) {
       if (prompts[promptIdx].selectedPrompt === enteredPrompt)
-        return `\`Behavior prompt already set to ${enteredPrompt}\``;
+        return createMessageObject(
+          `\`Behavior prompt already set to ${enteredPrompt}\``,
+          "info"
+        );
       else {
         prompts[promptIdx].selectedPrompt = enteredPrompt;
-        return `\`Behavior prompt set to ${enteredPrompt}\``;
+        return createMessageObject(
+          `\`Behavior prompt set to ${enteredPrompt}\``,
+          "success"
+        );
       }
     }
   }
-  return `\`Behavior prompt ${enteredPrompt} not found\``;
+  return createMessageObject(
+    `\`Behavior prompt ${enteredPrompt} not found\``,
+    "warning"
+  );
 }
 
 /**
  * @description Sets the model to be used for the prompt
  *
- * @param {string} message Message object from Discord
+ * @param {string} enteredModel Model to change the selected model to
  * @param {string} serverID Server ID of the server the message was sent in
  *
- * @returns {string} Return a message for the bot to send
+ * @returns {Object} Message object for the bot to send
  */
-export function setEnteredModelStep(message, serverID) {
-  const enteredModel = message.replace("!ai.setmodel", "").trim();
-
+export function setEnteredModelStep(enteredModel, serverID) {
   if (enteredModel.length === 0)
-    return "`Empty or Invalid model name entered\nType a valid model engine name`";
+    return createMessageObject(
+      "`Empty or Invalid model name entered\nType a valid model engine name`",
+      "warning"
+    );
 
   // Get the prompt object index for the current discord server
   const promptIdx = getPromptObjectIndex(serverID);
 
   if (prompts[promptIdx].selectedModel === enteredModel)
-    return `\`Model already set to ${enteredModel}\``;
+    return createMessageObject(
+      `\`Model already set to ${enteredModel}\``,
+      "info"
+    );
   else {
     prompts[promptIdx].selectedModel = enteredModel;
     resetPromptStep(serverID);
@@ -154,14 +182,12 @@ export function setEnteredModelStep(message, serverID) {
 /**
  * @description Sets the model to be used for the prompt
  *
- * @param {string} message Message object from Discord
+ * @param {string} enteredEngine Engine to change the selected engine to
  * @param {string} serverID Server ID of the server the message was sent in
  *
  * @returns {string} Return a message for the bot to send
  */
-export function setEnteredEngineStep(message, serverID) {
-  const enteredEngine = message.replace("!ai.setengine", "").trim();
-
+export function setEnteredEngineStep(enteredEngine, serverID) {
   if (enteredEngine.length === 0)
     return "`Empty or Invalid engine name entered\nType a valid engine name`";
 

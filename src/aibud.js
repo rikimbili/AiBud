@@ -17,19 +17,39 @@ const client = new Client({
 
 client.commands = new Collection();
 
-// Display only once upon startup
+// Do only once upon startup
 client.once("ready", () => {
   console.log("AiBud is Online!");
 });
 
-// On each message, check if it is a command and run the main function if it is
+// Run this on every message received
+client.on("messageCreate", async (message) => {
+  if (message.author.bot) return; // Return if the message is from a bot
+
+  if (message.content.trim().startsWith("<@!935964380779134986>")) {
+    // Show the bot as typing in the channel while the prompt is being generated
+    message.channel.sendTyping();
+
+    // Send the generated prompt as a reply message
+    await message.reply(
+      await steps.generatePromptStep(
+        message.content,
+        message.guildId,
+        message.member.nickname,
+        message.author.username
+      )
+    );
+  }
+});
+
+// Run this on every command received
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return; // Return if the message is not a bot command
 
   const { commandName, options } = interaction;
 
   if (commandName === "ai") {
-    if (options.getSubcommand() === "chat") {
+    if (options.getSubcommand() === "help") {
       await interaction.reply("it works!");
     }
   }
@@ -105,18 +125,6 @@ async function AiBud(message) {
   }
   // Prompt command case
   else if (message.content.startsWith("!ai ")) {
-    // Show the bot as typing in the channel while the prompt is being generated
-    await message.channel.sendTyping();
-
-    // Send the generated prompt as a reply message
-    await message.reply(
-      await steps.generatePromptStep(
-        message.content,
-        message.guildId,
-        message.member.nickname,
-        message.author.username
-      )
-    );
   }
   // Invalid command case
   else if (message.content.startsWith("!ai")) {
