@@ -1,3 +1,0 @@
-/*
-  Command actions to execute
-*/

@@ -13,16 +13,16 @@ const ai = new SlashCommandBuilder()
   )
   .addSubcommand((subcommand) =>
     subcommand
-      .setName("model")
+      .setName("set-model")
       .setDescription("Model to use for text generation")
       .addStringOption((option) =>
         option
-          .setName("engine")
+          .setName("model")
           .setDescription("The name of the engine to use")
           .setRequired(true)
-          .addChoice("GPT3-Davinci", "GPT3-Davinci")
-          .addChoice("GPT3-Curie", "curie")
-          .addChoice("GPT3-Babbage", "babbage")
+          .addChoice("GPT3-Davinci", "gpt3-davinci")
+          .addChoice("GPT3-Curie", "gpt3-curie")
+          .addChoice("GPT3-Babbage", "gpt3-babbage")
       )
   );
 

@@ -7,7 +7,8 @@
 import "dotenv/config";
 import { Client, Intents, Collection } from "discord.js";
 import * as steps from "./steps/steps.js"; // Import all steps
-import "./deploy-commands.js"; // Initializes the commands
+import "./commands/deploy-commands.js"; // Initializes the commands
+import { createHelpEmbed } from "./commands/command-embeds.js"; // Import the embeds
 
 import promptsPreset from "../prompts.json" assert { type: "json" }; // Import prompts
 
@@ -19,7 +20,7 @@ client.commands = new Collection();
 
 // Do only once upon startup
 client.once("ready", () => {
-  console.log("AiBud is Online!");
+  console.log("AiBud is Ready to Chat!");
 });
 
 // Run this on every message received from a channel
@@ -31,6 +32,7 @@ client.on("messageCreate", async (message) => {
     // Show the bot as typing in the channel while the prompt is being generated
     message.channel.sendTyping();
 
+    // Generate a reply prompt
     const reply = await steps.generatePromptStep(
       message.content
         .replace("<@!935964380779134986>", "") // Remove the bot mention
@@ -42,19 +44,26 @@ client.on("messageCreate", async (message) => {
     );
 
     // Send the generated prompt as a reply message
-    await message.reply(reply.message);
+    await message.channel.send(reply.message);
   }
 });
 
 // Run this on every command received
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isCommand()) return; // Return if the message is not a bot command
+  // Return if the interaction is not a bot command or if it doesnt come from a server
+  if (!interaction.isCommand() || interaction.inGuild()) return;
 
   const { commandName, options } = interaction;
 
   if (commandName === "ai") {
-    if (options.getSubcommand() === "help") {
-      await interaction.reply("it works!");
+    switch (options.getSubcommand()) {
+      case "help":
+        await interaction.reply({ embeds: [createHelpEmbed()] });
+        break;
+      default:
+        interaction.reply(
+          "Invalid subcommand. Use `ai help` to see the available commands."
+        );
     }
   }
 
