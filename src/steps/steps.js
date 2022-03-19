@@ -13,8 +13,10 @@ import {
 
 import promptsPreset from "../../prompts.json" assert { type: "json" }; // Import prompts
 
-// prompts array singleton holding the prompt objects for all the servers AiBud is in
-// This array will hold different prompt objects for each server AiBud is in
+/**
+ * @description prompts array singleton holding the prompt objects for all the servers AiBud is in
+ * @type {Array<Object>}
+ */
 export const prompts = [];
 
 /**
@@ -70,7 +72,7 @@ export async function generatePromptStep(
       "warning"
     );
   }
-  userPrompt = `${userNickname || username}: ${userPrompt}`;
+  userPrompt = `${userNickname || username}: ${userPrompt}\n`;
 
   // Add the user's message to the selected prompt
   concatPrompt(promptIdx, userPrompt + "AiBud: ");
@@ -131,20 +133,20 @@ export function setEnteredPromptStep(enteredPrompt, serverID) {
     if (promptKey === enteredPrompt) {
       if (prompts[promptIdx].selectedPrompt === enteredPrompt)
         return createMessageObject(
-          `\`Behavior prompt already set to ${enteredPrompt}\``,
+          `Behavior prompt already set to ${enteredPrompt}`,
           "info"
         );
       else {
         prompts[promptIdx].selectedPrompt = enteredPrompt;
         return createMessageObject(
-          `\`Behavior prompt set to ${enteredPrompt}\``,
+          `Behavior prompt set to ${enteredPrompt}`,
           "success"
         );
       }
     }
   }
   return createMessageObject(
-    `\`Behavior prompt ${enteredPrompt} not found\``,
+    `Behavior prompt ${enteredPrompt} not found`,
     "warning"
   );
 }
@@ -160,7 +162,7 @@ export function setEnteredPromptStep(enteredPrompt, serverID) {
 export function setEnteredModelStep(enteredModel, serverID) {
   if (enteredModel.length === 0)
     return createMessageObject(
-      "`Empty or Invalid model name entered\nType a valid model engine name`",
+      "Empty or Invalid model name entered\nType a valid model engine name",
       "warning"
     );
 
@@ -168,14 +170,11 @@ export function setEnteredModelStep(enteredModel, serverID) {
   const promptIdx = getPromptObjectIndex(serverID);
 
   if (prompts[promptIdx].selectedModel === enteredModel)
-    return createMessageObject(
-      `\`Model already set to ${enteredModel}\``,
-      "info"
-    );
+    return createMessageObject(`Model already set to ${enteredModel}`, "info");
   else {
     prompts[promptIdx].selectedModel = enteredModel;
     resetPromptStep(serverID);
-    return `\`Model set to ${enteredModel}\``;
+    return createMessageObject(`Model set to ${enteredModel}`, "success");
   }
 }
 
@@ -185,19 +184,25 @@ export function setEnteredModelStep(enteredModel, serverID) {
  * @param {string} enteredEngine Engine to change the selected engine to
  * @param {string} serverID Server ID of the server the message was sent in
  *
- * @returns {string} Return a message for the bot to send
+ * @returns {Object} Message object for the bot to send
  */
 export function setEnteredEngineStep(enteredEngine, serverID) {
   if (enteredEngine.length === 0)
-    return "`Empty or Invalid engine name entered\nType a valid engine name`";
+    return createMessageObject(
+      "Empty or Invalid engine name entered\nType a valid engine name",
+      "warning"
+    );
 
   // Get the prompt object index for the current discord server
   const promptIdx = getPromptObjectIndex(serverID);
 
   if (prompts[promptIdx].selectedEngine === enteredEngine)
-    return `\`Engine already set to ${enteredEngine}\``;
+    return createMessageObject(
+      `Engine already set to ${enteredEngine}`,
+      "info"
+    );
   else {
     prompts[promptIdx].selectedEngine = enteredEngine;
-    return `\`Engine set to ${enteredEngine}\``;
+    return createMessageObject(`Engine set to ${enteredEngine}`, "success");
   }
 }

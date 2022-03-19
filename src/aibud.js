@@ -22,23 +22,27 @@ client.once("ready", () => {
   console.log("AiBud is Online!");
 });
 
-// Run this on every message received
+// Run this on every message received from a channel
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return; // Return if the message is from a bot
 
+  // Check if the message sent is mentioning the bot
   if (message.content.trim().startsWith("<@!935964380779134986>")) {
     // Show the bot as typing in the channel while the prompt is being generated
     message.channel.sendTyping();
 
-    // Send the generated prompt as a reply message
-    await message.reply(
-      await steps.generatePromptStep(
-        message.content,
-        message.guildId,
-        message.member.nickname,
-        message.author.username
-      )
+    const reply = await steps.generatePromptStep(
+      message.content
+        .replace("<@!935964380779134986>", "") // Remove the bot mention
+        .replace(/\s+/g, " ") // Remove extra spaces
+        .trim(),
+      message.guildId,
+      message.member.nickname,
+      message.author.username
     );
+
+    // Send the generated prompt as a reply message
+    await message.reply(reply.message);
   }
 });
 
