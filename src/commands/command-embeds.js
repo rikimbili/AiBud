@@ -1,16 +1,18 @@
 import { MessageEmbed } from "discord.js";
 
+const SUCCESS_COLOR = "#00cc00";
+const INFO_COLOR = "#0077cc";
+const WARN_COLOR = "#cc7700";
+const ERROR_COLOR = "#cc0000";
+
 export function createHelpEmbed() {
   return new MessageEmbed()
-    .setColor("#0099ff")
-    .setTitle("Help")
-    .setDescription("Bot Usage and Commands Help")
+    .setColor(INFO_COLOR)
     .addFields([
-      { name: "\u200B", value: "\u200B" },
       {
         name: "Usage",
         value:
-          "To chat, just send a message mentioning me. Try it! -> **`@AiBud Whats up?`**",
+          "Mention me if you want to chat. Try it -> **`@AiBud Whats up?`**",
       },
       { name: "\u200B", value: "\u200B" },
       {
@@ -36,6 +38,22 @@ export function createHelpEmbed() {
       { name: "\u200B", value: "\u200B" },
     ])
     .setFooter({
-      text: "Last Updated on March 19th, 2022",
+      text: "Last Updated on March 24th, 2022",
     });
+}
+
+export function createMessageEmbed(message, type) {
+  const templateEmbed = new MessageEmbed().setDescription(message);
+
+  if (type === "success") {
+    return templateEmbed
+      .setColor(SUCCESS_COLOR)
+      .setTitle("Operation Successful");
+  } else if (type === "warning") {
+    return templateEmbed.setColor(WARN_COLOR).setTitle("Warning");
+  } else if (type === "error") {
+    return templateEmbed.setColor(ERROR_COLOR).setTitle("Error");
+  } else {
+    return templateEmbed.setColor(INFO_COLOR).setTitle("Message");
+  }
 }

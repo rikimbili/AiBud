@@ -1,8 +1,7 @@
 /*
   TODO
-  - Handle massive prompt sizes as a result of big conversation histories
+  - Handle massive prompt sizes
   - Add Search, Image Classification/Creation and question/answer functionality
-  - Discord status
 */
 import "dotenv/config";
 import { Client, Intents, Collection } from "discord.js";
@@ -23,9 +22,9 @@ client.once("ready", () => {
   console.log("AiBud is Ready to Chat!");
 });
 
-// Run this on every message received from a channel
+// Run this on every message received from a server channel
 client.on("messageCreate", async (message) => {
-  if (message.author.bot) return; // Return if the message is from a bot
+  if (message.author.bot) return; // Dont do anything if the message is from a bot
 
   // Check if the message sent is mentioning the bot
   if (message.content.trim().startsWith("<@!935964380779134986>")) {
@@ -42,16 +41,16 @@ client.on("messageCreate", async (message) => {
       message.member.nickname,
       message.author.username
     );
-
+    console.log(reply);
     // Send the generated prompt as a reply message
-    await message.channel.send(reply.message);
+    await message.reply(reply.type === "rich" ? { embeds: [reply] } : reply);
   }
 });
 
 // Run this on every command received
 client.on("interactionCreate", async (interaction) => {
-  // Return if the interaction is not a bot command or if it doesnt come from a server
-  if (!interaction.isCommand() || interaction.inGuild()) return;
+  // Dont do anything if the interaction is not a bot command or if it doesnt come from a server
+  if (!interaction.isCommand() || !interaction.inGuild()) return;
 
   const { commandName, options } = interaction;
 
