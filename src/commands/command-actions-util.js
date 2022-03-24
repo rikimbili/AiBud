@@ -1,4 +1,4 @@
-import { prompts } from "./steps.js";
+import { prompts } from "./command-actions.js";
 
 import promptsPreset from "../../prompts.json" assert { type: "json" };
 

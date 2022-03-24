@@ -1,6 +1,3 @@
-/*
-  Contains all command declarations
-*/
 import { SlashCommandBuilder } from "@discordjs/builders";
 
 const ai = new SlashCommandBuilder()
@@ -10,6 +7,9 @@ const ai = new SlashCommandBuilder()
     subcommand
       .setName("help")
       .setDescription("Display commands and their usage")
+  )
+  .addSubcommand((subcommand) =>
+    subcommand.setName("reset").setDescription("Reset the chat prompt history")
   )
   .addSubcommand((subcommand) =>
     subcommand

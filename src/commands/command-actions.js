@@ -2,14 +2,14 @@
   Steps used in the main aibud.js file for text completion and command execution.
 */
 
-import { GPT3 } from "./aimodels.js"; // Import models
+import { GPT3 } from "../models.js"; // Import models
 import {
   changeNameOccurrences,
   concatPrompt,
   getPrompt,
   getPromptObjectIndex,
-} from "./utils.js"; // Import utilities
-import { createMessageEmbed } from "../commands/command-embeds.js"; // Import embeds to create messages
+} from "./command-actions-util.js"; // Import utilities
+import { createMessageEmbed } from "./command-embeds.js"; // Import embeds to create messages
 
 import promptsPreset from "../../prompts.json" assert { type: "json" }; // Import prompts
 
@@ -38,7 +38,7 @@ export function resetPromptStep(serverID) {
       prompts[getPromptObjectIndex(serverID)].selectedPrompt
     }" for ${serverID}\n`
   );
-  return createMessageEmbed("🪄`Prompt Reset`🪄", "success");
+  return createMessageEmbed("Prompt reset", "success");
 }
 
 /**
