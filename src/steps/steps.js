@@ -84,7 +84,7 @@ export async function generatePromptStep(
     0.7,
     1.0,
     1.5,
-    prompts[promptIdx].selectedEngine
+    prompts[promptIdx].selectedModel
   )
     .then((gptResponse) => {
       const response = gptResponse.data.choices[0]?.text.trim();
@@ -175,31 +175,5 @@ export function setEnteredModelStep(enteredModel, serverID) {
     prompts[promptIdx].selectedModel = enteredModel;
     resetPromptStep(serverID);
     return createMessageEmbed(`Model set to ${enteredModel}`, "success");
-  }
-}
-
-/**
- * @description Sets the model to be used for the prompt
- *
- * @param {string} enteredEngine Engine to change the selected engine to
- * @param {string} serverID Server ID of the server the message was sent in
- *
- * @returns {MessageEmbed} Embed to send
- */
-export function setEnteredEngineStep(enteredEngine, serverID) {
-  if (enteredEngine.length === 0)
-    return createMessageEmbed(
-      "Empty or Invalid engine name entered\nType a valid engine name",
-      "warning"
-    );
-
-  // Get the prompt object index for the current discord server
-  const promptIdx = getPromptObjectIndex(serverID);
-
-  if (prompts[promptIdx].selectedEngine === enteredEngine)
-    return createMessageEmbed(`Engine already set to ${enteredEngine}`, "info");
-  else {
-    prompts[promptIdx].selectedEngine = enteredEngine;
-    return createMessageEmbed(`Engine set to ${enteredEngine}`, "success");
   }
 }

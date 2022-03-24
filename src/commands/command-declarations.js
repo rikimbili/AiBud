@@ -20,9 +20,9 @@ const ai = new SlashCommandBuilder()
           .setName("model")
           .setDescription("The name of the engine to use")
           .setRequired(true)
-          .addChoice("GPT3-Davinci", "gpt3-davinci")
-          .addChoice("GPT3-Curie", "gpt3-curie")
-          .addChoice("GPT3-Babbage", "gpt3-babbage")
+          .addChoice("GPT3-Davinci", "davinci")
+          .addChoice("GPT3-Curie", "curie")
+          .addChoice("GPT3-Babbage", "babbage")
       )
   );
 

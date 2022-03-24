@@ -41,8 +41,8 @@ client.on("messageCreate", async (message) => {
       message.member.nickname,
       message.author.username
     );
-    console.log(reply);
-    // Send the generated prompt as a reply message
+
+    // Send the generated prompt as a reply message. An embed with description will be sent in case of a warning or error
     await message.reply(reply.type === "rich" ? { embeds: [reply] } : reply);
   }
 });
@@ -58,6 +58,16 @@ client.on("interactionCreate", async (interaction) => {
     switch (options.getSubcommand()) {
       case "help":
         await interaction.reply({ embeds: [createHelpEmbed()] });
+        break;
+      case "set-model":
+        await interaction.reply({
+          embeds: [
+            steps.setEnteredModelStep(
+              options.getString("model"),
+              interaction.guildId
+            ),
+          ],
+        });
         break;
       default:
         interaction.reply(

@@ -76,8 +76,7 @@ export function getPromptObjectIndex(serverID) {
       serverId: serverID, // Server ID of the server the message was sent in
       prompt: JSON.parse(JSON.stringify(promptsPreset)), // Create a new object from the prompts preset
       selectedPrompt: "normal", // Prompt to use
-      selectedModel: "GPT3", // AI model to use
-      selectedEngine: "curie", // Model specific engine to use
+      selectedModel: "davinci", // AI model to use
       defaultNameNeedsChange: true, // If the default name in the prompts needs to be changed
     });
     return 0;
