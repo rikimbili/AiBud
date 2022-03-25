@@ -2,40 +2,44 @@
   Steps used in the main aibud.js file for text completion and command execution.
 */
 
-import { GPT3 } from "../models.js"; // Import models
 import {
   changeNameOccurrences,
   concatPrompt,
   getPrompt,
   getPromptObjectIndex,
 } from "./command-actions-util.js"; // Import utilities
+import { GPT3 } from "../models.js"; // Import models
 import { createMessageEmbed } from "./command-embeds.js"; // Import embeds to create messages
 
-import promptsPreset from "../../prompts.json" assert { type: "json" }; // Import prompts
+import promptsPreset from "../prompts.json" assert { type: "json" }; // Import prompts
+import { MessageEmbed } from "discord.js";
 
-/**
- * @description prompts array singleton holding the prompt objects for all the servers AiBud is in
- * @type {Array<Object>}
- */
-export const prompts = [];
+// Server Object interface that contains all the aibud settings along with the prompts for the server
+interface ServerObj {
+  serverId: string;
+  // Prompt JSON object with all the prompts
+  prompt: Record<string, string>;
+  selectedPrompt: string;
+  selectedModel: string;
+  defaultNameNeedsChange: boolean;
+}
+
+// Array singleton holding ServerObj objects for each server aibud is in
+export const serverArr: Array<ServerObj> = [];
 
 /**
  * @description Resets the prompt to the default preset for the server and makes a new object in the prompts array
  * if the server is not found
- *
- * @param {string} serverID server ID of the server the message was sent in
- *
- * @returns {MessageEmbed} Embed to send
  */
-export function resetPromptStep(serverID) {
+export function resetPromptStep(serverID: string) {
   // Replace the existing prompt with the preset prompt for the current discord server
-  prompts[getPromptObjectIndex(serverID)].prompt = JSON.parse(
+  serverArr[getPromptObjectIndex(serverID)].prompt = JSON.parse(
     JSON.stringify(promptsPreset)
   );
 
   console.log(
     `\nReset prompt "${
-      prompts[getPromptObjectIndex(serverID)].selectedPrompt
+      serverArr[getPromptObjectIndex(serverID)].selectedPrompt
     }" for ${serverID}\n`
   );
   return createMessageEmbed("Prompt reset", "success");
@@ -43,25 +47,17 @@ export function resetPromptStep(serverID) {
 
 /**
  * @description Completes the selected prompt using the specified AI model and engine
- *
- * @param {string} message Message sent by the user
- * @param {string} serverID Server ID of the server the message was sent in
- * @param {string} userNickname Server nickname of the user
- * @param {string} username Username of the user
- *
- * @returns {Promise<Object>} Message for the bot to send
  */
 export async function generatePromptStep(
-  message,
-  serverID,
-  userNickname,
-  username
-) {
-  // Get the prompt object index for the current discord server
+  message: string,
+  serverID: string,
+  username: string
+): Promise<MessageEmbed | string> {
+  // Get the server object index for the current discord server
   const promptIdx = getPromptObjectIndex(serverID);
   // Change the default prompt name occurrences to either the server nickname or username
-  if (prompts[promptIdx].defaultNameNeedsChange) {
-    changeNameOccurrences(promptIdx, userNickname || username);
+  if (serverArr[promptIdx].defaultNameNeedsChange) {
+    changeNameOccurrences(promptIdx, username);
   }
   // Remove !ai and any extra spaces from the message
   let userPrompt = message.replace("!ai", "").replace(/\s+/g, " ").trim(); // Remove extra spaces and trim the message
@@ -72,19 +68,19 @@ export async function generatePromptStep(
       "warning"
     );
   }
-  userPrompt = `${userNickname || username}: ${userPrompt}\n`;
+  userPrompt = `${username}: ${userPrompt}\n`;
 
   // Add the user's message to the selected prompt
   concatPrompt(promptIdx, userPrompt + "AiBud: ");
 
   // Send the prompt to OpenAI and wait for the magic to happen 🪄
   return await GPT3(
-    getPrompt(promptIdx),
+    getPrompt(promptIdx)!,
     64,
     0.7,
     1.0,
     1.5,
-    prompts[promptIdx].selectedModel
+    serverArr[promptIdx].selectedModel
   )
     .then((gptResponse) => {
       const response = gptResponse.data.choices[0]?.text.trim();
@@ -111,33 +107,31 @@ export async function generatePromptStep(
 }
 
 /**
- * @description Sets the prompt to the entered prompt
- *
- * @param {string} enteredPrompt Prompt to change the selected prompt to
- * @param {string} serverID Server ID of the server the message was sent in
- *
- * @returns {MessageEmbed} Embed to send
+ * @description Sets the prompt in the server object to the entered prompt
  */
-export function setEnteredPromptStep(enteredPrompt, serverID) {
+export function setEnteredPromptStep(
+  enteredPrompt: string,
+  serverId: string
+): MessageEmbed {
   if (enteredPrompt.length === 0)
     return createMessageEmbed(
       "Empty or Invalid prompt name entered\nType a valid prompt name",
       "warning"
     );
 
-  // Get the prompt object index for the current discord server
-  const promptIdx = getPromptObjectIndex(serverID);
+  // Get the server object index for the current discord server
+  const promptIdx = getPromptObjectIndex(serverId);
 
   // Check if the entered prompt exists and set it to the selected prompt if it does
-  for (const [promptKey] of Object.entries(prompts[promptIdx].prompt)) {
+  for (const [promptKey] of Object.entries(serverArr[promptIdx].prompt)) {
     if (promptKey === enteredPrompt) {
-      if (prompts[promptIdx].selectedPrompt === enteredPrompt)
+      if (serverArr[promptIdx].selectedPrompt === enteredPrompt)
         return createMessageEmbed(
           `Behavior prompt already set to ${enteredPrompt}`,
           "info"
         );
       else {
-        prompts[promptIdx].selectedPrompt = enteredPrompt;
+        serverArr[promptIdx].selectedPrompt = enteredPrompt;
         return createMessageEmbed(
           `Behavior prompt set to ${enteredPrompt}`,
           "success"
@@ -153,26 +147,24 @@ export function setEnteredPromptStep(enteredPrompt, serverID) {
 
 /**
  * @description Sets the model to be used for the prompt
- *
- * @param {string} enteredModel Model to change the selected model to
- * @param {string} serverID Server ID of the server the message was sent in
- *
- * @returns {MessageEmbed} Embed to send
  */
-export function setEnteredModelStep(enteredModel, serverID) {
+export function setEnteredModelStep(
+  enteredModel: string,
+  serverID: string
+): MessageEmbed {
   if (enteredModel.length === 0)
     return createMessageEmbed(
       "Empty or Invalid model name entered\nType a valid model engine name",
       "warning"
     );
 
-  // Get the prompt object index for the current discord server
+  // Get the server object index for the current discord server
   const promptIdx = getPromptObjectIndex(serverID);
 
-  if (prompts[promptIdx].selectedModel === enteredModel)
+  if (serverArr[promptIdx].selectedModel === enteredModel)
     return createMessageEmbed(`Model already set to ${enteredModel}`, "info");
   else {
-    prompts[promptIdx].selectedModel = enteredModel;
+    serverArr[promptIdx].selectedModel = enteredModel;
     resetPromptStep(serverID);
     return createMessageEmbed(`Model set to ${enteredModel}`, "success");
   }

@@ -13,12 +13,12 @@ import {
 import "./commands/deploy-commands.js"; // Initializes the commands
 import { createHelpEmbed } from "./commands/command-embeds.js"; // Import the embeds
 
-const client = new Client({
+const client: Client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
 }); // Initialize the discord bot client with the right permissions
-await client.login(process.env.DISCORD_BOT_TOKEN);
-
-client.commands = new Collection();
+await client.login(process.env.DISCORD_BOT_TOKEN); // Log in to the bot
+// @ts-ignore
+client.commands = new Collection(); // Initialize the commands collection
 
 // Do only once upon startup
 client.once("ready", () => {
@@ -40,13 +40,16 @@ client.on("messageCreate", async (message) => {
         .replace("<@!935964380779134986>", "") // Remove the bot mention
         .replace(/\s+/g, " ") // Remove extra spaces
         .trim(),
-      message.guildId,
-      message.member.nickname,
-      message.author.username
+      message.guildId!,
+      message.member?.nickname || message.author.username
     );
 
     // Send the generated prompt as a reply message. An embed with description will be sent in case of a warning or error
-    await message.reply(reply.type === "rich" ? { embeds: [reply] } : reply);
+    if (typeof reply === "string") {
+      await message.reply(reply);
+    } else {
+      await message.reply({ embeds: [reply] });
+    }
   }
 });
 
@@ -71,7 +74,7 @@ client.on("interactionCreate", async (interaction) => {
         await interaction.reply({
           embeds: [
             setEnteredModelStep(
-              options.getString("model"),
+              options.getString("model")!,
               interaction.guildId
             ),
           ],

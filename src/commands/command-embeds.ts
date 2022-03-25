@@ -5,7 +5,7 @@ const INFO_COLOR = "#0077cc";
 const WARN_COLOR = "#cc7700";
 const ERROR_COLOR = "#cc0000";
 
-export function createHelpEmbed() {
+export function createHelpEmbed(): MessageEmbed {
   return new MessageEmbed()
     .setColor(INFO_COLOR)
     .addFields([
@@ -42,8 +42,13 @@ export function createHelpEmbed() {
     });
 }
 
-export function createMessageEmbed(message, type) {
-  const templateEmbed = new MessageEmbed().setDescription(message);
+export function createMessageEmbed(
+  message: string,
+  type: string
+): MessageEmbed {
+  const templateEmbed: MessageEmbed = new MessageEmbed().setDescription(
+    message
+  );
 
   if (type === "success") {
     return templateEmbed
