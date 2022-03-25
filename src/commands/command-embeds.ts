@@ -12,7 +12,7 @@ export function createHelpEmbed(): MessageEmbed {
       {
         name: "Usage",
         value:
-          "Mention me if you want to chat. Try it -> **`@AiBud Whats up?`**",
+          "To chat with AiBud, just send a message mentioning me in a server channel. Try it -> **`@AiBud Whats up?`**",
       },
       { name: "\u200B", value: "\u200B" },
       {
@@ -26,9 +26,22 @@ export function createHelpEmbed(): MessageEmbed {
         inline: true,
       },
       {
+        name: "/ai reset",
+        value:
+          "Reset the conversation state. This will erase any memory it had of previous conversations.",
+        inline: true,
+      },
+      {
+        name: "/ai set-personality",
+        value:
+          "Set the personality of AiBud. It will respond to you based on this behavior/personality context.\n" +
+          "Available personalities: `Normal`, `Street`, `Sassy`, `Sarcastic`, `Programmer`",
+        inline: true,
+      },
+      {
         name: "/ai set-model",
         value:
-          "Set the completion model to use for the bot\n" +
+          "Set the completion model to use.\n" +
           "Available models:\n" +
           "`GPT3-Davinci`: Highest cost, most capable GPT3 model\n" +
           "`GPT3-Curie`: Low cost, capable GPT3 model\n" +

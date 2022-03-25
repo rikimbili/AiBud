@@ -4,11 +4,6 @@ const ai = new SlashCommandBuilder()
   .setName("ai")
   .setDescription("Interact with AiBud")
   .addSubcommand((subcommand) =>
-    subcommand
-      .setName("help")
-      .setDescription("Display commands and their usage")
-  )
-  .addSubcommand((subcommand) =>
     subcommand.setName("reset").setDescription("Reset the chat prompt history")
   )
   .addSubcommand((subcommand) =>
@@ -24,6 +19,27 @@ const ai = new SlashCommandBuilder()
           .addChoice("GPT3-Curie", "curie")
           .addChoice("GPT3-Babbage", "babbage")
       )
+  )
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("set-personality")
+      .setDescription("Set the personality of AiBud")
+      .addStringOption((option) =>
+        option
+          .setName("personality")
+          .setDescription("The name of the engine to use")
+          .setRequired(true)
+          .addChoice("Normal", "normal")
+          .addChoice("Street", "street")
+          .addChoice("Sassy", "sassy")
+          .addChoice("Sarcastic", "sarcastic")
+          .addChoice("Programmer", "programmer")
+      )
+  )
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("help")
+      .setDescription("Display commands and their usage")
   );
 
 export default ai;

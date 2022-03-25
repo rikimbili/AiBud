@@ -9,6 +9,7 @@ import {
   generatePromptStep,
   resetPromptStep,
   setEnteredModelStep,
+  setEnteredPromptStep,
 } from "./commands/command-actions.js";
 import "./commands/deploy-commands.js"; // Initializes the commands
 import { createHelpEmbed } from "./commands/command-embeds.js"; // Import the embeds
@@ -61,6 +62,7 @@ client.on("interactionCreate", async (interaction) => {
   const { commandName, options } = interaction;
 
   if (commandName === "ai") {
+    // Check subcommand and execute the appropriate action
     switch (options.getSubcommand()) {
       case "help":
         await interaction.reply({ embeds: [createHelpEmbed()] });
@@ -68,6 +70,16 @@ client.on("interactionCreate", async (interaction) => {
       case "reset":
         await interaction.reply({
           embeds: [resetPromptStep(interaction.guildId)],
+        });
+        break;
+      case "set-personality":
+        await interaction.reply({
+          embeds: [
+            setEnteredPromptStep(
+              options.getString("personality")!,
+              interaction.guildId
+            ),
+          ],
         });
         break;
       case "set-model":
