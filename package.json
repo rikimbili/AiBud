@@ -1,6 +1,6 @@
 {
   "name": "aibud",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "A general purpose discord chat bot that uses various machine learning models to generate chat responses",
   "main": "src/aibud.js",
   "type": "module",
