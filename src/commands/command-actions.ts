@@ -105,8 +105,7 @@ export async function generatePromptStep(
         );
       } else {
         concatPrompt(serverIdx, `${gptResponse.data.choices[0].text}\n`);
-        // console.log("Response generated from OpenAI complete engine");
-        console.log(serverArr[serverIdx].prompt[selectedPrompt] + "\n\n");
+        console.log("Response generated from OpenAI complete engine");
         return response;
       }
     })

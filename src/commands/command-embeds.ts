@@ -12,7 +12,7 @@ export function createHelpEmbed(): MessageEmbed {
       {
         name: "Usage",
         value:
-          "To chat with AiBud, just send a message mentioning me in a server channel. Try it -> **`@AiBud Whats up?`**",
+          "To chat with AiBud, just send a message mentioning it in a server channel.\nTry it -> **`@AiBud Whats up?`**",
       },
       { name: "\u200B", value: "\u200B" },
       {
