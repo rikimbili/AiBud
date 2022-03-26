@@ -7,6 +7,7 @@ import {
   concatPrompt,
   getPrompt,
   getPromptObjectIndex,
+  reducePrompt,
 } from "./command-actions-util.js"; // Import utilities
 import { GPT3 } from "../models.js"; // Import models
 import { createMessageEmbed } from "./command-embeds.js"; // Import embeds to create messages
@@ -54,13 +55,24 @@ export async function generatePromptStep(
   username: string
 ): Promise<MessageEmbed | string> {
   // Get the server object index for the current discord server
-  const promptIdx = getPromptObjectIndex(serverID);
+  const serverIdx = getPromptObjectIndex(serverID);
+  const selectedPrompt = serverArr[serverIdx].selectedPrompt;
+
   // Change the default prompt name occurrences to either the server nickname or username
-  if (serverArr[promptIdx].defaultNameNeedsChange) {
-    changeNameOccurrences(promptIdx, username);
+  if (serverArr[serverIdx].defaultNameNeedsChange) {
+    changeNameOccurrences(serverIdx, username);
   }
-  // Remove !ai and any extra spaces from the message
-  let userPrompt = message.replace("!ai", "").replace(/\s+/g, " ").trim(); // Remove extra spaces and trim the message
+
+  // Ensure the prompt remains below a certain character limit
+  serverArr[serverIdx].prompt[selectedPrompt] = reducePrompt(
+    serverArr[serverIdx].prompt[selectedPrompt]
+  );
+
+  // Remove mention and any extra spaces from the message
+  let userPrompt = message
+    .replace("<@!935964380779134986>", "")
+    .replace(/\s+/g, " ")
+    .trim(); // Remove extra spaces and trim the message
   // Case where the prompt is empty
   if (userPrompt.length === 0) {
     return createMessageEmbed(
@@ -71,16 +83,16 @@ export async function generatePromptStep(
   userPrompt = `${username}: ${userPrompt}\n`;
 
   // Add the user's message to the selected prompt
-  concatPrompt(promptIdx, userPrompt + "AiBud: ");
+  concatPrompt(serverIdx, userPrompt + "AiBud: ");
 
   // Send the prompt to OpenAI and wait for the magic to happen 🪄
   return await GPT3(
-    getPrompt(promptIdx)!,
+    getPrompt(serverIdx)!,
     64,
     0.7,
     1.0,
     1.5,
-    serverArr[promptIdx].selectedModel
+    serverArr[serverIdx].selectedModel
   )
     .then((gptResponse) => {
       const response = gptResponse.data.choices[0]?.text.trim();
@@ -92,13 +104,14 @@ export async function generatePromptStep(
           "warning"
         );
       } else {
-        concatPrompt(promptIdx, `${gptResponse.data.choices[0].text}\n`);
-        console.log(userPrompt + `AiBud: ${response}`);
+        concatPrompt(serverIdx, `${gptResponse.data.choices[0].text}\n`);
+        // console.log("Response generated from OpenAI complete engine");
+        console.log(serverArr[serverIdx].prompt[selectedPrompt] + "\n\n");
         return response;
       }
     })
     .catch((err) => {
-      console.log(err);
+      console.error(err);
       return createMessageEmbed(
         "Error occurred while generating the prompt\n",
         "error"
@@ -120,18 +133,18 @@ export function setEnteredPromptStep(
     );
 
   // Get the server object index for the current discord server
-  const promptIdx = getPromptObjectIndex(serverId);
+  const serverIdx = getPromptObjectIndex(serverId);
 
   // Check if the entered prompt exists and set it to the selected prompt if it does
-  for (const [promptKey] of Object.entries(serverArr[promptIdx].prompt)) {
+  for (const [promptKey] of Object.entries(serverArr[serverIdx].prompt)) {
     if (promptKey === enteredPrompt) {
-      if (serverArr[promptIdx].selectedPrompt === enteredPrompt)
+      if (serverArr[serverIdx].selectedPrompt === enteredPrompt)
         return createMessageEmbed(
           `Behavior prompt already set to ${enteredPrompt}`,
           "info"
         );
       else {
-        serverArr[promptIdx].selectedPrompt = enteredPrompt;
+        serverArr[serverIdx].selectedPrompt = enteredPrompt;
         return createMessageEmbed(
           `Behavior prompt set to ${enteredPrompt}`,
           "success"
@@ -159,12 +172,12 @@ export function setEnteredModelStep(
     );
 
   // Get the server object index for the current discord server
-  const promptIdx = getPromptObjectIndex(serverID);
+  const serverIdx = getPromptObjectIndex(serverID);
 
-  if (serverArr[promptIdx].selectedModel === enteredModel)
+  if (serverArr[serverIdx].selectedModel === enteredModel)
     return createMessageEmbed(`Model already set to ${enteredModel}`, "info");
   else {
-    serverArr[promptIdx].selectedModel = enteredModel;
+    serverArr[serverIdx].selectedModel = enteredModel;
     resetPromptStep(serverID);
     return createMessageEmbed(`Model set to ${enteredModel}`, "success");
   }

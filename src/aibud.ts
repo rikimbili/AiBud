@@ -1,7 +1,9 @@
 /*
   TODO
-  - Handle massive prompt sizes
   - Add Search, Image Classification/Creation and question/answer functionality
+  - Dockerize it?
+  - Implement reply, whenever a user replies to a message sent by aibud (even after the bot being restarted) it should
+  have the context of that message and reply accordingly
 */
 import "dotenv/config";
 import { Client, Intents, Collection } from "discord.js";
@@ -37,10 +39,7 @@ client.on("messageCreate", async (message) => {
 
     // Generate a reply prompt
     const reply = await generatePromptStep(
-      message.content
-        .replace("<@!935964380779134986>", "") // Remove the bot mention
-        .replace(/\s+/g, " ") // Remove extra spaces
-        .trim(),
+      message.content,
       message.guildId!,
       message.member?.nickname || message.author.username
     );

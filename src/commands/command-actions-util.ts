@@ -7,46 +7,44 @@ import { serverArr } from "./command-actions.js";
 import promptsPreset from "../prompts.json" assert { type: "json" };
 
 /**
- * @description Gets the specified prompt
+ * @description Get the specified prompt
  */
-export function getPrompt(promptIdx: number): string | void {
+export function getPrompt(serverIdx: number): string | void {
   for (const [promptKey, promptValue] of Object.entries(
-    serverArr[promptIdx].prompt
+    serverArr[serverIdx].prompt
   )) {
-    if (promptKey === serverArr[promptIdx].selectedPrompt) {
+    if (promptKey === serverArr[serverIdx].selectedPrompt) {
       return promptValue;
     }
   }
 }
 
 /**
- * @description Changes the default name throughout the prompts to the user's name
+ * @description Change the default name throughout the prompts to the user's name
  */
-export function changeNameOccurrences(promptIdx: number, name: string) {
-  if (serverArr[promptIdx].defaultNameNeedsChange) {
+export function changeNameOccurrences(serverIdx: number, name: string) {
+  if (serverArr[serverIdx].defaultNameNeedsChange) {
     for (const [promptKey, promptValue] of Object.entries(
-      serverArr[promptIdx].prompt
+      serverArr[serverIdx].prompt
     )) {
-      serverArr[promptIdx].prompt[promptKey] = promptValue.replaceAll(
+      serverArr[serverIdx].prompt[promptKey] = promptValue.replaceAll(
         "You:",
         `${name}:`
       );
     }
-    serverArr[promptIdx].defaultNameNeedsChange = false;
+    serverArr[serverIdx].defaultNameNeedsChange = false;
   }
 }
 
 /**
- * @description Concatenates the specified prompt
- * @param {number} promptIdx Prompt index for the discord server the message was sent in
- * @param {string} newPrompt New prompt to concatenate
+ * @description Concatenate the specified prompt
  */
-export function concatPrompt(promptIdx: number, newPrompt: string): void {
+export function concatPrompt(serverIdx: number, newPrompt: string): void {
   for (const [promptKey, promptValue] of Object.entries(
-    serverArr[promptIdx].prompt
+    serverArr[serverIdx].prompt
   )) {
-    if (promptKey === serverArr[promptIdx].selectedPrompt) {
-      serverArr[promptIdx].prompt[promptKey] = promptValue + newPrompt;
+    if (promptKey === serverArr[serverIdx].selectedPrompt) {
+      serverArr[serverIdx].prompt[promptKey] = promptValue + newPrompt;
     }
   }
 }
@@ -57,13 +55,13 @@ export function concatPrompt(promptIdx: number, newPrompt: string): void {
  */
 export function getPromptObjectIndex(serverId: string): number {
   // Get index if server object already exists for the server
-  const promptIdx = serverArr.findIndex(
+  const serverIdx = serverArr.findIndex(
     (prompt) => prompt.serverId === serverId
   );
 
   // If Server object already exists for the server, return the index
-  if (promptIdx !== -1) {
-    return promptIdx;
+  if (serverIdx !== -1) {
+    return serverIdx;
   }
   // Create a new server object for the server
   else {
@@ -76,4 +74,24 @@ export function getPromptObjectIndex(serverId: string): number {
     });
     return 0;
   }
+}
+
+/*
+  @description Limit prompt to a certain amount of characters by removing the oldest conversation lines
+*/
+export function reducePrompt(prompt: string, charLimit: number = 1000): string {
+  if (prompt.length < charLimit) return prompt;
+
+  let promptArr: string[] = prompt.split("\n");
+  let length: number = prompt.length;
+
+  // Remove the oldest conversation line while the prompt is over the character limit
+  while (length > charLimit) {
+    // Note: Index 1 is the first conversation line of the prompt, Index 0 is the prompt description and should not be removed
+    promptArr.splice(1, 1);
+    length -= promptArr[1].length; // This doesn't factor in the new line character but it should be fine
+  }
+
+  // Return reducedPrompt
+  return promptArr.join("\n");
 }

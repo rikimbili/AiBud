@@ -35,7 +35,7 @@ export function createHelpEmbed(): MessageEmbed {
         name: "/ai set-personality",
         value:
           "Set the personality of AiBud. It will respond to you based on this behavior/personality context.\n" +
-          "Available personalities: `Normal`, `Street`, `Sassy`, `Sarcastic`, `Programmer`",
+          "Available personalities: `Normal`, `Street`, `Sarcastic`, `Programmer`",
         inline: true,
       },
       {
@@ -51,7 +51,7 @@ export function createHelpEmbed(): MessageEmbed {
       { name: "\u200B", value: "\u200B" },
     ])
     .setFooter({
-      text: "Last Updated on March 24th, 2022",
+      text: "Last Updated on March 26th, 2022",
     });
 }
 
