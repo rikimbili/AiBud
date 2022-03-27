@@ -71,6 +71,7 @@ export async function generatePromptStep(
   // Remove mention and any extra spaces from the message
   let userPrompt = message
     .replace("<@!935964380779134986>", "")
+    .replace("<@&937224165797273603>", "")
     .replace(/\s+/g, " ")
     .trim(); // Remove extra spaces and trim the message
   // Case where the prompt is empty

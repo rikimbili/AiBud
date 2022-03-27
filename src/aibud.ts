@@ -33,7 +33,10 @@ client.on("messageCreate", async (message) => {
   if (message.author.bot) return; // Dont do anything if the message is from a bot
 
   // Check if the message sent is mentioning the bot
-  if (message.content.trim().startsWith("<@!935964380779134986>")) {
+  if (
+    message.content.trim().startsWith("<@!935964380779134986>") ||
+    message.content.trim().startsWith("<@&937224165797273603>")
+  ) {
     // Show the bot as typing in the channel while the prompt is being generated
     message.channel.sendTyping();
 
@@ -92,7 +95,7 @@ client.on("interactionCreate", async (interaction) => {
         });
         break;
       default:
-        interaction.reply(
+        await interaction.reply(
           "Invalid subcommand. Use `/ai help` to see the available commands."
         );
     }

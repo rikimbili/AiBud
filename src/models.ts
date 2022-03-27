@@ -1,6 +1,6 @@
 import OpenAI, { Completion } from "openai-api";
 
-const openai = new OpenAI(process.env.OPENAI_API_KEY!); // Initialize OpenAI with your API key
+const openai = new OpenAI(process.env.OPENAI_API_KEY!); // Initialize OpenAI
 
 export async function GPTJ() {
   return;
@@ -23,9 +23,9 @@ export async function GPT3(
   prompt: string,
   maxTokens: number = 64,
   temperature: number = 0.7,
-  presenceP: number = 1.0,
-  frequencyP: number = 1.5,
-  engine: string = "curie"
+  presenceP: number = 1.5,
+  frequencyP: number = 2.0,
+  engine: string = "davinci"
 ): Promise<Completion> {
   return await openai.complete({
     engine: engine,
