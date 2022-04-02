@@ -4,6 +4,9 @@
   "description": "A general purpose discord chat bot that uses various machine learning models to generate chat responses",
   "main": "src/aibud.js",
   "type": "module",
+  "engines": {
+    "node": "17.x"
+  }
   "dependencies": {
     "@discordjs/builders": "^0.12.0",
     "@discordjs/rest": "^0.3.0",
