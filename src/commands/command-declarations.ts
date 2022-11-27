@@ -15,9 +15,7 @@ const ai = new SlashCommandBuilder()
           .setName("model")
           .setDescription("The name of the engine to use")
           .setRequired(true)
-          .addChoice("GPT3-Davinci", "davinci")
-          .addChoice("GPT3-Curie", "curie")
-          .addChoice("GPT3-Babbage", "babbage")
+          .addChoices({name: "GPT3-Davinci", value: "davinci"}, {name: "GPT3-Curie", value: "curie"}, {name: "GPT3-Babbage", value: "babbage"}),
       )
   )
   .addSubcommand((subcommand) =>
@@ -29,10 +27,7 @@ const ai = new SlashCommandBuilder()
           .setName("personality")
           .setDescription("The name of the engine to use")
           .setRequired(true)
-          .addChoice("Normal", "normal")
-          .addChoice("Street", "street")
-          .addChoice("Sarcastic", "sarcastic")
-          .addChoice("Programmer", "programmer")
+          .addChoices({name: "Normal", value: "normal"}, {name: "Street", value: "street"}, {name: "Sarcastic", value: "sarcastic"}, {name: "Programmer", value: "programmer"}),
       )
   )
   .addSubcommand((subcommand) =>

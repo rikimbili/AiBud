@@ -6,7 +6,7 @@
   have the context of that message and reply accordingly
 */
 import "dotenv/config";
-import { Client, Intents, Collection } from "discord.js";
+import { Client, GatewayIntentBits, Collection } from "discord.js";
 import {
   generatePromptStep,
   resetPromptStep,
@@ -17,7 +17,7 @@ import "./commands/deploy-commands.js"; // Initializes the commands
 import { createHelpEmbed } from "./commands/command-embeds.js"; // Import the embeds
 
 const client: Client = new Client({
-  intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
 }); // Initialize the discord bot client with the right permissions
 await client.login(process.env.DISCORD_BOT_TOKEN); // Log in to the bot
 // @ts-ignore
@@ -31,18 +31,14 @@ client.once("ready", () => {
 // Run this on every message received from a server channel
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return; // Dont do anything if the message is from a bot
-
   // Check if the message sent is mentioning the bot
-  if (
-    message.content.trim().startsWith("<@!935964380779134986>") ||
-    message.content.trim().startsWith("<@&937224165797273603>")
-  ) {
+  if (message.mentions.has(client.user!)) {
     // Show the bot as typing in the channel while the prompt is being generated
     message.channel.sendTyping();
 
     // Generate a reply prompt
     const reply = await generatePromptStep(
-      message.content,
+      message.cleanContent,
       message.guildId!,
       message.member?.nickname || message.author.username
     );
@@ -65,6 +61,7 @@ client.on("interactionCreate", async (interaction) => {
 
   if (commandName === "ai") {
     // Check subcommand and execute the appropriate action
+    // @ts-ignore
     switch (options.getSubcommand()) {
       case "help":
         await interaction.reply({ embeds: [createHelpEmbed()] });
@@ -78,7 +75,7 @@ client.on("interactionCreate", async (interaction) => {
         await interaction.reply({
           embeds: [
             setEnteredPromptStep(
-              options.getString("personality")!,
+              options.get("personality")?.value as string,
               interaction.guildId
             ),
           ],
@@ -88,7 +85,7 @@ client.on("interactionCreate", async (interaction) => {
         await interaction.reply({
           embeds: [
             setEnteredModelStep(
-              options.getString("model")!,
+              options.get("model")?.value as string,
               interaction.guildId
             ),
           ],

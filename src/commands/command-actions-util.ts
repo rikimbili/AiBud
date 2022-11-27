@@ -79,7 +79,7 @@ export function getPromptObjectIndex(serverId: string): number {
 /*
   @description Limit prompt to a certain amount of characters by removing the oldest conversation lines
 */
-export function reducePrompt(prompt: string, charLimit: number = 1000): string {
+export function reducePrompt(prompt: string, charLimit: number = 1500): string {
   if (prompt.length < charLimit) return prompt;
 
   let promptArr: string[] = prompt.split("\n");

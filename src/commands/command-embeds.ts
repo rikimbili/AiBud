@@ -1,12 +1,12 @@
-import { MessageEmbed } from "discord.js";
+import { EmbedBuilder  } from "discord.js";
 
 const SUCCESS_COLOR = "#00cc00";
 const INFO_COLOR = "#0077cc";
 const WARN_COLOR = "#cc7700";
 const ERROR_COLOR = "#cc0000";
 
-export function createHelpEmbed(): MessageEmbed {
-  return new MessageEmbed()
+export function createHelpEmbed() {
+  return new EmbedBuilder()
     .setColor(INFO_COLOR)
     .addFields([
       {
@@ -58,8 +58,8 @@ export function createHelpEmbed(): MessageEmbed {
 export function createMessageEmbed(
   message: string,
   type: string
-): MessageEmbed {
-  const templateEmbed: MessageEmbed = new MessageEmbed().setDescription(
+) {
+  const templateEmbed = new EmbedBuilder().setDescription(
     message
   );
 

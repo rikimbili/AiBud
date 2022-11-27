@@ -2,6 +2,7 @@
   Steps used in the main aibud.js file for text completion and command execution.
 */
 
+import { EmbedBuilder  } from "discord.js";
 import {
   changeNameOccurrences,
   concatPrompt,
@@ -13,7 +14,6 @@ import { GPT3 } from "../models.js"; // Import models
 import { createMessageEmbed } from "./command-embeds.js"; // Import embeds to create messages
 
 import promptsPreset from "../prompts.json" assert { type: "json" }; // Import prompts
-import { MessageEmbed } from "discord.js";
 
 // Server Object interface that contains all the aibud settings along with the prompts for the server
 interface ServerObj {
@@ -53,7 +53,7 @@ export async function generatePromptStep(
   message: string,
   serverID: string,
   username: string
-): Promise<MessageEmbed | string> {
+): Promise<EmbedBuilder | string> {
   // Get the server object index for the current discord server
   const serverIdx = getPromptObjectIndex(serverID);
   const selectedPrompt = serverArr[serverIdx].selectedPrompt;
@@ -69,11 +69,7 @@ export async function generatePromptStep(
   );
 
   // Remove mention and any extra spaces from the message
-  let userPrompt = message
-    .replace("<@!935964380779134986>", "")
-    .replace("<@&937224165797273603>", "")
-    .replace(/\s+/g, " ")
-    .trim(); // Remove extra spaces and trim the message
+  let userPrompt = message.replace(/\s+/g, " ").trim(); // Remove extra spaces and trim the message
   // Case where the prompt is empty
   if (userPrompt.length === 0) {
     return createMessageEmbed(
@@ -89,10 +85,10 @@ export async function generatePromptStep(
   // Send the prompt to OpenAI and wait for the magic to happen 🪄
   return await GPT3(
     getPrompt(serverIdx)!,
-    64,
-    0.7,
+    80,
+    0.75,
     1.0,
-    1.5,
+    1.7,
     serverArr[serverIdx].selectedModel
   )
     .then((gptResponse) => {
@@ -125,7 +121,7 @@ export async function generatePromptStep(
 export function setEnteredPromptStep(
   enteredPrompt: string,
   serverId: string
-): MessageEmbed {
+) {
   if (enteredPrompt.length === 0)
     return createMessageEmbed(
       "Empty or Invalid prompt name entered\nType a valid prompt name",
@@ -164,7 +160,7 @@ export function setEnteredPromptStep(
 export function setEnteredModelStep(
   enteredModel: string,
   serverID: string
-): MessageEmbed {
+) {
   if (enteredModel.length === 0)
     return createMessageEmbed(
       "Empty or Invalid model name entered\nType a valid model engine name",
